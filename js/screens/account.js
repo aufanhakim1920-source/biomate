@@ -73,6 +73,21 @@ export async function account() {
     return wrap;
   }
 
+  /* A confirmation link that was expired or already used comes back as
+     an error in the URL. main.js stashes it before the router runs;
+     show it here rather than dropping someone on a screen that just
+     says "guest" with no explanation of why their link did nothing. */
+  const linkError = sessionStorage.getItem("biomate/auth-error");
+  if (linkError) {
+    sessionStorage.removeItem("biomate/auth-error");
+    wrap.append(
+      el("p", { class: "acct__err", role: "alert", style: "margin:0 var(--pad) 14px",
+                /* trim any trailing stop off the server's sentence before
+                   adding our own, or the two run together */
+                text: `That confirmation link didn't work — ${friendly({ message: linkError }).replace(/[.\s]+$/, "")}. Links expire, and each one can only be used once. Enter your details again below and we'll send a fresh one.` })
+    );
+  }
+
   const state = Auth.account();
 
   /* what a guest would be walking away from */

@@ -15,6 +15,7 @@ import { icon } from "./icons.js";
 import { loadPrefs } from "./store.js";
 import { mount as mountA11y, say } from "./a11y.js";
 import { mountAppbar, setAppbarState } from "./appbar.js";
+import { consumeAuthRedirect } from "./auth.js";
 
 import { home } from "./screens/home.js";
 import { matchmaker } from "./screens/matchmaker.js";
@@ -83,6 +84,13 @@ function buildNav() {
 
 /* ---------------- go ---------------- */
 async function boot() {
+  /* FIRST. The email-confirmation link lands here with the session in
+     the URL fragment, and the router would otherwise try to read
+     `#access_token=…` as a route name. Swallow it, store the session,
+     and rewrite the address bar before anything else looks at it. */
+  const redirect = consumeAuthRedirect();
+  if (redirect && !redirect.ok) sessionStorage.setItem("biomate/auth-error", redirect.error);
+
   loadPrefs();
   mountA11y();
   mountAppbar();

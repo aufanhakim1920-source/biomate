@@ -40,7 +40,13 @@ function save(s) {
 /* expires_at is unix SECONDS. Refresh a minute early so a request
    started just before the boundary doesn't land just after it. */
 function expired(s) {
-  return !s || !s.expires_at || s.expires_at * 1000 - Date.now() < 60_000;
+  /* Number() because expires_at arrives as a string when a session is
+     built from the confirmation redirect's URL fragment, and
+     "1787360000" * 1000 is fine but ("x" * 1000) is NaN — a NaN
+     comparison is false, so a bad value would look permanently
+     valid rather than permanently expired. */
+  const at = s && Number(s.expires_at);
+  return !s || !at || at * 1000 - Date.now() < 60_000;
 }
 
 async function call(path, body, opts = {}) {
@@ -100,7 +106,8 @@ export async function ready() {
       }
       session = s;
       failed = false;
-      return s;
+      await hydrate();
+      return session;
     } catch (err) {
       /* A silent capability failure reads as a broken build. Record it
          so the UI can say WHY writes are local-only. */
@@ -114,6 +121,81 @@ export async function ready() {
   })();
 
   return inflight;
+}
+
+/* ⚠️ The cached user object goes stale in one direction and it is the
+   direction that matters.
+
+   Confirming an email converts the SAME user from anonymous to
+   permanent, server-side. The browser that started it is still holding
+   the session it was handed at signup, whose `user` says
+   `is_anonymous: true` — and access tokens last an hour, so nothing
+   forces a refresh. For up to an hour the app keeps calling that person
+   a guest, and a reload does not help, because a reload just reads the
+   same stale copy back out of localStorage.
+
+   That is exactly what Aufan hit: account made, email confirmed, and
+   the app still said guest after refreshing.
+
+   So: ask the server who this token belongs to. Only when the cached
+   copy claims to be anonymous, because that is the only claim that can
+   silently become wrong — a session that says it is signed in never
+   turns out to be a guest. One request, on boot, and only for guests. */
+async function hydrate() {
+  if (!session || !session.access_token) return;
+  const u = session.user;
+  if (u && !u.is_anonymous && u.email) return;
+  try {
+    const fresh = await call("user", undefined, { method: "GET", token: session.access_token });
+    if (fresh && fresh.id) {
+      session.user = fresh;
+      save(session);
+    }
+  } catch {
+    /* offline, or the token was rejected — ready() already deals with
+       the failures that matter, and being wrong about guest-ness is
+       not worth breaking boot over */
+  }
+}
+
+/* ------------------------------------------------------------
+   The confirmation link comes back with the session in the URL.
+
+   GoTrue verifies the token and then redirects to the site with
+   `#access_token=…&refresh_token=…&expires_at=…` in the FRAGMENT.
+   Nothing in this app read that, so the new session was dropped on the
+   floor — and worse, the router parses `location.hash` as a route, so
+   `#access_token=…` resolved to no known screen and fell back to home.
+
+   Must run before the router starts and before ready(), so the arriving
+   session wins over the cached one instead of racing it.
+   ------------------------------------------------------------ */
+export function consumeAuthRedirect() {
+  const raw = String(location.hash || "").replace(/^#\/?/, "");
+  if (!/^(access_token|refresh_token|error|error_code|error_description)=/.test(raw)) return null;
+
+  const p = new URLSearchParams(raw);
+  const clean = (to) => history.replaceState(null, "", location.pathname + location.search + to);
+
+  const err = p.get("error_description") || p.get("error");
+  if (err) {
+    clean("#/account");
+    return { ok: false, error: decodeURIComponent(err).replace(/\+/g, " ") };
+  }
+
+  const access_token = p.get("access_token");
+  const refresh_token = p.get("refresh_token");
+  if (!access_token || !refresh_token) return null;
+
+  save({
+    access_token,
+    refresh_token,
+    token_type: p.get("token_type") || "bearer",
+    expires_at: Number(p.get("expires_at")) || Math.floor(Date.now() / 1000) + Number(p.get("expires_in") || 3600),
+    user: null,   /* filled in by hydrate() — the fragment carries no user */
+  });
+  clean("#/account");
+  return { ok: true };
 }
 
 /** Authorization headers for a PostgREST/Storage call, or {} when signed out. */
