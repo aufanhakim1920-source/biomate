@@ -249,6 +249,7 @@
 .grid__day {
   font-size: 10px;
   font-weight: 700;
+  min-height: 34px;
   padding: 6px 0;
   border-radius: var(--r-sm);
   background: var(--cream);
@@ -256,8 +257,13 @@
   line-height: 1.1;
 }
 .grid__hour { font-size: 10px; color: var(--ink-faint); display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; }
+/* A 7x15 grid cannot give every cell a 44px target without becoming
+   660px tall and unusable. 30px is the honest compromise; the real
+   accessible path is the keyboard (arrows + space) and the
+   whole-column buttons, both of which exist. Documented in
+   docs/ACCESSIBILITY.md rather than pretended away. */
 .grid__cell {
-  height: 26px;
+  height: 30px;
   border-radius: 5px;
   background: var(--cream);
   border: 1px solid transparent;
@@ -635,7 +641,7 @@
   background: var(--forest);
   box-shadow: var(--lift-1), 0 0 0 3px color-mix(in srgb, var(--forest) 22%, transparent);
 }
-.ausmap__tick { display: inline-grid; place-items: center; margin-right: 4px; }
+.ausmap__tick { display: inline-grid; place-items: center; margin-right: 4px; position: relative; z-index: 1; }
 /* a state you haven't walked reads as an outline waiting to be claimed */
 .ausmap__pin:not(.is-visited) {
   background: color-mix(in srgb, var(--brand-ink) 82%, transparent);
@@ -845,3 +851,32 @@
 .showcase__b[data-tier="bronze"] { color: #8A5623; }
 .showcase__b[data-tier="silver"] { color: #6E767E; }
 .showcase__b[data-tier="gold"]   { color: #9A7210; }
+
+/* The region pins have to stay small — seven 44px pills would cover
+   the continent they sit on. So the VISUAL stays 28px and the TARGET
+   is grown with a transparent pseudo-element, which is the standard
+   way to satisfy the 44px guidance without wrecking the layout. */
+.ausmap__pin { position: absolute; }
+.ausmap__pin::after {
+  content: "";
+  position: absolute;
+  inset: -9px -6px;          /* 28 + 18 = 46px tall target */
+  border-radius: var(--r-pill);
+}
+
+/* On a phone these two wrappers are plain blocks and change nothing.
+   On a laptop they become the two columns that stop the right half of
+   the window being empty. */
+@media (min-width: 900px) {
+  #screen { max-width: 880px; }
+  .home__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px 20px;
+    align-items: start;
+  }
+  .home__left .ausmap { max-width: none; margin-inline: 0; }
+  .home__right .missions { margin: 0 var(--pad) 0 0; }
+  .home__right .fadestack { grid-template-columns: 1fr; padding-right: var(--pad); padding-left: 0; }
+  .home__right .stack { grid-template-columns: 1fr; padding-right: var(--pad); padding-left: 0; }
+}

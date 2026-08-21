@@ -57,14 +57,17 @@ export async function home() {
     ])
   );
 
+  const left = el("div", { class: "home__left" });
+  const right = el("div", { class: "home__right" });
+
   /* ---- the map, doubling as the collection board ---- */
   const hikeById = Object.fromEntries(allHikes.map((h) => [h.id, h]));
   const visited = new Set(
     [...myHikes].map((id) => (hikeById[id] || {}).region).filter(Boolean)
   );
-  wrap.append(ausMap((code) => go(`region/${code}`), counts, visited));
+  left.append(ausMap((code) => go(`region/${code}`), counts, visited));
 
-  wrap.append(
+  left.append(
     el("p", { class: "collect" }, [
       el("b", { text: `${visited.size} of ${ALL_REGIONS.length}` }),
       el("span", { text: visited.size === ALL_REGIONS.length
@@ -89,7 +92,7 @@ export async function home() {
   const missions = missionsFor(facts, todayISO);
   const doneCount = missions.filter((m) => m.done).length;
 
-  wrap.append(
+  right.append(
     el("section", { class: "missions" }, [
       el("div", { class: "missions__head" }, [
         el("h2", { class: "sectionhead", style: "padding:0", text: "Today's missions" }),
@@ -163,7 +166,7 @@ export async function home() {
       ])
     )
   );
-  wrap.append(stack);
+  right.append(stack);
 
   /* ---- next hike, if there is one ---- */
   const next = hikes
@@ -171,7 +174,7 @@ export async function home() {
     .sort((a, b) => (a.proposed_date < b.proposed_date ? -1 : 1))[0];
 
   if (next) {
-    wrap.append(
+    right.append(
       el("div", { class: "stack", style: "margin-top:18px" }, [
         el("p", { class: "tiny", style: "padding:0 2px", text: "COMING UP" }),
         el("button", { class: "row", type: "button", onclick: () => go(`hike/${next.id}`) }, [
@@ -186,5 +189,6 @@ export async function home() {
     );
   }
 
+  wrap.append(el("div", { class: "home__grid" }, [left, right]));
   return wrap;
 }
