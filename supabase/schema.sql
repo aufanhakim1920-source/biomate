@@ -17,7 +17,7 @@
 -- helpers
 -- ------------------------------------------------------------
 create or replace function public.touch_updated_at()
-returns trigger language plpgsql as $fn$
+returns trigger language plpgsql set search_path = '' as $fn$
 begin
   new.updated_at = now();
   return new;
@@ -165,6 +165,19 @@ drop trigger if exists content_indexed on storage.objects;
 create trigger content_indexed
   after insert or update or delete on storage.objects
   for each row execute function public.index_content_object();
+
+-- ------------------------------------------------------------
+-- Lock the trigger functions away from the HTTP API.
+-- PostgREST exposes EVERY function in the `public` schema at
+-- /rest/v1/rpc/<name>, so a security-definer trigger function is
+-- reachable by an anonymous caller over the internet. Nothing should
+-- call these directly — only the triggers that own them.
+-- (Flagged by the Supabase security advisor; the project reports
+-- zero lints with these in place.)
+-- ------------------------------------------------------------
+revoke execute on function public.handle_new_user()      from public, anon, authenticated;
+revoke execute on function public.index_content_object() from public, anon, authenticated;
+revoke execute on function public.touch_updated_at()     from public, anon, authenticated;
 
 -- NOTE: media.url is stored as a ROOT-RELATIVE path, not an absolute
 -- URL. The trigger has no reliable way to learn the project's own
