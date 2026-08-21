@@ -103,6 +103,17 @@ export async function account() {
   const body = el("div");
   wrap.append(body);
 
+  /* ---------------- arrived from a reset link ----------------
+     This has to be checked BEFORE "signed in", because a recovery link
+     signs you in exactly like a confirmation link does. Without it the
+     screen would show a tidy "Signed in / Sign out" page to somebody
+     who came here specifically to set a new password, and never ask
+     for one. */
+  if (sessionStorage.getItem("biomate/recovery")) {
+    body.append(newPasswordForm());
+    return wrap;
+  }
+
   /* ---------------- signed in ---------------- */
   if (state.signedIn) {
     body.append(
@@ -128,6 +139,25 @@ export async function account() {
           },
         }),
         el("p", { class: "tiny", style: "padding:8px 2px 0", text: "Signing out puts you back in guest mode with a fresh, empty profile. Nothing on your account is deleted — sign back in and it is all there." }),
+        /* The same reset flow, from the inside. Someone signed in on one
+           device and locked out on another still needs it, and sending
+           it to their own address needs no extra thought. */
+        el("button", {
+          class: "linky", type: "button", style: "margin-top:16px;display:block",
+          text: "Change my password",
+          onclick: async (e) => {
+            const b = e.currentTarget;
+            b.disabled = true;
+            try {
+              await Auth.requestPasswordReset(state.email);
+              toast("Reset link sent");
+              say(`A reset link is on its way to ${state.email}.`);
+            } catch (e2) {
+              toast(friendly(e2));
+              b.disabled = false;
+            }
+          },
+        }),
       ])
     );
     return wrap;
@@ -162,7 +192,9 @@ export async function account() {
   render();
 
   function render() {
-    panel.replaceChildren(mode === "create" ? createForm() : signInForm());
+    panel.replaceChildren(
+      mode === "create" ? createForm() : mode === "reset" ? resetForm() : signInForm()
+    );
   }
 
   /* ---- create ---- */
@@ -280,6 +312,120 @@ export async function account() {
         class: "linky", type: "button", style: "margin-top:14px",
         text: "I don't have one yet",
         onclick: () => { mode = "create"; render(); },
+      }),
+      el("button", {
+        class: "linky", type: "button", style: "margin-top:10px;display:block",
+        text: "I forgot my password",
+        onclick: () => { mode = "reset"; render(); },
+      }),
+    ]);
+  }
+
+  /* ---- forgot password ----
+     The success message is deliberately the same whether or not the
+     address has an account. GoTrue answers 200 either way on purpose,
+     and a UI that says "no account with that email" hands anyone a
+     tool for finding out who has signed up. */
+  function resetForm() {
+    const emailInput = field("re-email", "EMAIL", { type: "email", autocomplete: "email", placeholder: "you@example.com" });
+    const err = el("p", { class: "acct__err", role: "alert" });
+    const submit = el("button", { class: "btn btn--primary btn--block", type: "submit", text: "Send a reset link" });
+
+    return el("form", {
+      class: "block", novalidate: "",
+      onsubmit: async (e) => {
+        e.preventDefault();
+        err.textContent = "";
+        const email = emailInput.input.value.trim();
+        if (!email) return fail(err, "Enter your email address.", emailInput.input);
+        if (!looksLikeEmail(email)) return fail(err, "That doesn't look like an email address.", emailInput.input);
+
+        submit.disabled = true;
+        submit.textContent = "Sending...";
+        try {
+          await Auth.requestPasswordReset(email);
+          panel.replaceChildren(sentPanel(email));
+          say(`If ${email} has an account, a reset link is on its way.`);
+        } catch (e2) {
+          submit.disabled = false;
+          submit.textContent = "Send a reset link";
+          fail(err, friendly(e2), emailInput.input);
+        }
+      },
+    }, [
+      el("h2", { class: "h2", text: "Reset your password" }),
+      el("p", { class: "meta", style: "margin-bottom:14px", text: "We'll email you a link. Opening it brings you back here to choose a new password." }),
+      emailInput.node,
+      err,
+      submit,
+      el("button", {
+        class: "linky", type: "button", style: "margin-top:14px",
+        text: "Back to sign in",
+        onclick: () => { mode = "signin"; render(); },
+      }),
+    ]);
+  }
+
+  function sentPanel(email) {
+    return el("section", { class: "block" }, [
+      el("h2", { class: "h2", text: "Check your email" }),
+      el("p", { class: "meta", style: "margin-top:6px" }, [
+        el("span", { text: "If " }),
+        el("b", { text: email }),
+        el("span", { text: " has an account, a reset link is on its way. Open it and you can set a new password straight away." }),
+      ]),
+      el("p", { class: "tiny", style: "margin-top:10px", text: "Check spam. Reset mail on a free Supabase project is rate-limited, so it can take a few minutes." }),
+      el("button", {
+        class: "linky", style: "margin-top:14px", type: "button", text: "Back to sign in",
+        onclick: () => { mode = "signin"; render(); },
+      }),
+    ]);
+  }
+
+  /* ---- set a new password, after following the link ---- */
+  function newPasswordForm() {
+    const passInput = field("new-pass", "NEW PASSWORD", { type: "password", autocomplete: "new-password", placeholder: `At least ${MIN_PASSWORD} characters` });
+    const againInput = field("new-pass2", "TYPE IT AGAIN", { type: "password", autocomplete: "new-password", placeholder: "The same password" });
+    const err = el("p", { class: "acct__err", role: "alert" });
+    const submit = el("button", { class: "btn btn--primary btn--block", type: "submit", text: "Save my new password" });
+
+    return el("form", {
+      class: "block", novalidate: "",
+      onsubmit: async (e) => {
+        e.preventDefault();
+        err.textContent = "";
+        const pass = passInput.input.value;
+        const again = againInput.input.value;
+        if (pass.length < MIN_PASSWORD) return fail(err, `Passwords need at least ${MIN_PASSWORD} characters.`, passInput.input);
+        /* a confirm field, because a typo here locks you out of the
+           account you are in the middle of recovering */
+        if (pass !== again) return fail(err, "Those two don't match.", againInput.input);
+
+        submit.disabled = true;
+        submit.textContent = "Saving...";
+        try {
+          await Auth.setPassword(pass);
+          sessionStorage.removeItem("biomate/recovery");
+          toast("Password changed");
+          say("Password changed. You're signed in.");
+          go("home");
+        } catch (e2) {
+          submit.disabled = false;
+          submit.textContent = "Save my new password";
+          fail(err, friendly(e2), passInput.input);
+        }
+      },
+    }, [
+      el("h2", { class: "h2", text: "Choose a new password" }),
+      el("p", { class: "meta", style: "margin-bottom:14px", text: "The link signed you in, so this is the last step. Everything on your account is exactly where you left it." }),
+      passInput.node,
+      againInput.node,
+      err,
+      submit,
+      el("button", {
+        class: "linky", type: "button", style: "margin-top:14px",
+        text: "Skip for now",
+        onclick: () => { sessionStorage.removeItem("biomate/recovery"); go("home"); },
       }),
     ]);
   }

@@ -90,6 +90,12 @@ async function boot() {
      and rewrite the address bar before anything else looks at it. */
   const redirect = consumeAuthRedirect();
   if (redirect && !redirect.ok) sessionStorage.setItem("biomate/auth-error", redirect.error);
+  if (redirect && redirect.ok && redirect.type === "recovery") {
+    /* a recovery link signs you in like any other, so without this flag
+       the app would land someone on their profile having never asked
+       for the new password they came here to set */
+    sessionStorage.setItem("biomate/recovery", "1");
+  }
 
   loadPrefs();
   mountA11y();

@@ -195,7 +195,12 @@ export function consumeAuthRedirect() {
     user: null,   /* filled in by hydrate() — the fragment carries no user */
   });
   clean("#/account");
-  return { ok: true };
+
+  /* `type` distinguishes what the link was FOR. A recovery link signs
+     you in exactly like a confirmation link does, so without this the
+     app would quietly drop someone on their profile having never asked
+     for the new password they came to set. */
+  return { ok: true, type: p.get("type") || "" };
 }
 
 /** Authorization headers for a PostgREST/Storage call, or {} when signed out. */
@@ -302,6 +307,38 @@ export async function resendConfirmation(email) {
     if (!/invalid|type/i.test(String(err.message))) throw err;
     return call("resend", { type: "signup", email });
   }
+}
+
+/* ------------------------------------------------------------
+   Forgotten passwords
+
+   `recover` always answers 200, whether or not the address has an
+   account. That is deliberate on GoTrue's part and the UI must not
+   undo it: saying "no account with that email" turns a login form
+   into a tool for finding out who has signed up. So the screen says
+   the same thing either way.
+
+   `redirect_to` has to be in the project's redirect allow-list
+   (Authentication → URL Configuration) or GoTrue ignores it and falls
+   back to the Site URL. Sending the current page means a reset opened
+   on a phone comes back to the app on that phone.
+   ------------------------------------------------------------ */
+export async function requestPasswordReset(email) {
+  const back = encodeURIComponent(location.origin + location.pathname);
+  await call(`recover?redirect_to=${back}`, { email });
+  return true;
+}
+
+/** Set a new password for whoever the current token belongs to. */
+export async function setPassword(password) {
+  const s = await ready();
+  if (!s) throw new Error("Not connected — can't change the password right now.");
+  const user = await call("user", { password }, { method: "PUT", token: s.access_token });
+  if (user && user.id && session) {
+    session.user = user;
+    save(session);
+  }
+  return user;
 }
 
 /** What the UI needs to decide what to offer. */
