@@ -31,6 +31,7 @@ import { walk } from "./screens/walk.js";
 import { host, region } from "./screens/host.js";
 import { onboarding } from "./screens/onboarding.js";
 import { settings } from "./screens/settings.js";
+import { account } from "./screens/account.js";
 import { person } from "./screens/person.js";
 
 /* ---------------- routes ---------------- */
@@ -51,6 +52,7 @@ route("host",       host,       { title: () => "Host a hike",       nav: "cards"
 route("region",     region,     { title: (p) => p.id || "Region",   nav: "home" });
 route("welcome",    onboarding, { title: () => "Welcome",           nav: "" });
 route("settings",   settings,   { title: () => "Settings",          nav: "map" });
+route("account",    account,    { title: () => "Your account",      nav: "map" });
 route("person",     person,     { title: () => "Profile",           nav: "map" });
 
 /* ---------------- bottom nav ---------------- */

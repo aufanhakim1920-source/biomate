@@ -15,6 +15,7 @@
    ============================================================ */
 
 import { DB } from "../db.js";
+import * as Auth from "../auth.js";
 import { el, avatar, fmtDistance, fmtDuration } from "../ui.js";
 import { icon } from "../icons.js";
 import { setAudio, setTheme } from "../a11y.js";
@@ -189,6 +190,29 @@ export async function profile() {
         ]),
       ])
     );
+  }
+
+  /* ---- guest prompt ----
+     Shown here rather than as a modal on first run: guest mode is the
+     front door and interrupting it would defeat the point. It appears
+     once there is something worth keeping, which is also the first
+     moment the offer means anything. */
+  if (DB.isLive) {
+    const acct = Auth.account();
+    if (!acct.signedIn) {
+      wrap.append(
+        el("button", { class: "guestbar", type: "button", onclick: () => go("account") }, [
+          el("span", { class: "guestbar__ic", html: icon(acct.awaitingConfirmation ? "alert" : "people", { size: 18 }), "aria-hidden": "true" }),
+          el("span", { class: "guestbar__body" }, [
+            el("span", { class: "guestbar__t", text: acct.awaitingConfirmation ? "Confirm your email to finish" : "You're browsing as a guest" }),
+            el("span", { class: "guestbar__s", text: acct.awaitingConfirmation
+              ? `Sent to ${acct.email}. Until then this stays a guest profile.`
+              : "This profile lives in this browser only. Create an account to keep it." }),
+          ]),
+          el("span", { class: "guestbar__go", html: icon("arrow", { size: 18 }), "aria-hidden": "true" }),
+        ])
+      );
+    }
   }
 
   /* ---- start a walk ----

@@ -458,6 +458,49 @@
 /* The live recorder stacks two canvases: the route is append-only and
    never cleared, the moving dot is cleared every fix. Same box, same
    size, so they share one coordinate system. */
+/* ---------------- account ---------------- */
+
+/* the guest prompt on the profile — a row, not a banner. It is an
+   offer, not an interruption, and guest mode is the front door here */
+.guestbar {
+  display: flex; align-items: center; gap: 12px; width: calc(100% - var(--pad) * 2);
+  margin: 4px var(--pad) 10px; padding: 12px 14px; text-align: left;
+  border-radius: var(--r-lg); background: var(--cream);
+  border: 1px solid rgba(210,85,42,.32); cursor: pointer;
+}
+.guestbar:hover { border-color: var(--brand); }
+.guestbar__ic { display: grid; place-items: center; color: var(--brand-text); flex: 0 0 auto; }
+.guestbar__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.guestbar__t { font-weight: 700; font-size: var(--t-sm); }
+.guestbar__s { font-size: var(--t-xs); color: var(--ink-soft); }
+.guestbar__go { color: var(--ink-soft); flex: 0 0 auto; }
+
+.acct__badge {
+  display: flex; align-items: center; gap: 12px; padding: 14px;
+  border-radius: var(--r-lg);
+  background: linear-gradient(160deg, var(--peach-0), var(--peach-1));
+  box-shadow: var(--lift-1);
+}
+.acct__ic { display: grid; place-items: center; color: var(--forest); flex: 0 0 auto; }
+.acct__badge--guest .acct__ic { color: var(--brand-text); }
+
+/* An error has to be findable without colour — it sits directly under
+   the field it belongs to, carries role="alert", and moves focus. */
+.acct__err:empty { display: none; }
+.acct__err {
+  display: block; margin: 0 0 12px; padding: 10px 12px;
+  border-radius: 12px; font-size: var(--t-sm);
+  color: var(--brand-text); background: rgba(210,85,42,.10);
+  border: 1px solid rgba(210,85,42,.30);
+}
+
+.acct__warn {
+  display: flex; gap: 10px; margin: 0 0 14px; padding: 12px;
+  border-radius: 12px; font-size: var(--t-xs); line-height: 1.5;
+  background: rgba(240,163,42,.14); border: 1px solid rgba(240,163,42,.42);
+}
+.acct__warn .acct__ic { color: var(--amber); align-items: flex-start; padding-top: 1px; }
+
 .routewrap { position: relative; }
 .routewrap .route--dot { position: absolute; inset: 0; box-shadow: none; pointer-events: none; }
 

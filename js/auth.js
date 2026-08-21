@@ -43,11 +43,16 @@ function expired(s) {
   return !s || !s.expires_at || s.expires_at * 1000 - Date.now() < 60_000;
 }
 
-async function call(path, body) {
+async function call(path, body, opts = {}) {
+  const { method = "POST", token = null } = opts;
   const res = await fetch(`${CFG.url}/auth/v1/${path}`, {
-    method: "POST",
-    headers: { apikey: CFG.anonKey, "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    method,
+    headers: {
+      apikey: CFG.anonKey,
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: body === undefined ? undefined : JSON.stringify(body),
   });
   /* Parse the text and only JSON.parse when non-empty. An empty body
      makes res.json() throw, which in Peak & Pan turned every
@@ -129,3 +134,101 @@ export async function renew() {
 export const uid = () => (session && session.user && session.user.id) || "";
 export const isAnonymous = () => Boolean(session && session.user && session.user.is_anonymous);
 export const hasFailed = () => failed;
+
+/* ============================================================
+   Guest → account
+
+   Aufan: "peoplle can join guest mode but make sure there is
+   create acc option ok and sign in"
+
+   The important part is that creating an account is an UPGRADE of
+   the guest you already are, not a new identity. Supabase converts
+   an anonymous user in place, so the user id never changes — every
+   hike joined, walk recorded, badge earned and day of streak
+   carries over untouched, because every one of those rows is keyed
+   on that id. Nothing is migrated because nothing moves.
+
+   ⚠️ Two things this cannot paper over:
+
+   1. This project has email confirmation ON (mailer_autoconfirm is
+      false). So creating an account does not finish here — the
+      address has to be confirmed from an email. Until then the
+      guest session keeps working, which is the right behaviour but
+      only if the UI says so instead of claiming success.
+
+   2. SIGNING IN to a different existing account abandons whatever
+      the current guest did. Those rows stay owned by an anonymous
+      user nobody can sign into again. That is not recoverable, so
+      it is warned about before it happens rather than explained
+      afterwards.
+   ============================================================ */
+
+/** Turn the current guest into a permanent account, same user id. */
+export async function createAccount(email, password) {
+  const s = await ready();
+  if (!s) throw new Error("Not connected — can't create an account right now.");
+
+  const user = await call("user", { email, password }, { method: "PUT", token: s.access_token });
+
+  /* With confirmation on, the address lands in new_email and the user
+     stays anonymous until the link is clicked. With autoconfirm on it
+     is already email. Read the RESULT rather than assuming either —
+     the same code then behaves correctly whichever way the project is
+     configured, and the screen can say the true thing. */
+  const confirmed = Boolean(user && user.email && !user.new_email);
+  if (confirmed && session) {
+    session.user = user;
+    save(session);
+  }
+  return { confirmed, pendingEmail: (user && (user.new_email || user.email)) || email };
+}
+
+/** Sign in to an existing account. Replaces the current session. */
+export async function signIn(email, password) {
+  const next = await call("token?grant_type=password", { email, password });
+  if (!next || !next.access_token) throw new Error("Sign-in returned no session");
+  save(next);
+  failed = false;
+  return next;
+}
+
+/** Sign out, then become a guest again rather than a dead end. */
+export async function signOut() {
+  const s = session || load();
+  if (s && s.access_token) {
+    /* best effort — a failed logout must not strand the user in a
+       signed-in-but-broken state */
+    try { await call("logout", undefined, { token: s.access_token }); } catch { /* ignore */ }
+  }
+  save(null);
+  session = null;
+  inflight = null;
+  return signInAnonymously();
+}
+
+/** Re-send the confirmation mail.
+
+    Converting an anonymous user runs through GoTrue's EMAIL CHANGE
+    flow, not the signup flow, because the user already exists — so
+    "email_change" is the right type. A project with autoconfirm on
+    never gets here, and an account made some other way would be
+    "signup", so fall back rather than dead-end on a type mismatch. */
+export async function resendConfirmation(email) {
+  try {
+    return await call("resend", { type: "email_change", email });
+  } catch (err) {
+    if (!/invalid|type/i.test(String(err.message))) throw err;
+    return call("resend", { type: "signup", email });
+  }
+}
+
+/** What the UI needs to decide what to offer. */
+export function account() {
+  const u = (session && session.user) || null;
+  return {
+    signedIn: Boolean(u && !u.is_anonymous && u.email),
+    guest: Boolean(!u || u.is_anonymous || !u.email),
+    email: (u && (u.email || u.new_email)) || "",
+    awaitingConfirmation: Boolean(u && u.new_email && u.new_email !== u.email),
+  };
+}

@@ -15,6 +15,7 @@ import { el, toast, avatar } from "../ui.js";
 import { icon } from "../icons.js";
 import { say, setAudio, setTheme } from "../a11y.js";
 import { get } from "../store.js";
+import * as Auth from "../auth.js";
 import { go, back } from "../router.js";
 
 const PRONOUNS = ["she/her", "he/him", "they/them", "prefer not to say"];
@@ -36,6 +37,32 @@ export async function settings() {
       el("h1", { class: "display", style: "font-size:1.5rem", text: "Your profile" }),
     ])
   );
+
+  /* ---------------- account ----------------
+     First, because "who am I signed in as" frames everything below
+     it — a bio you edit as a guest lives in one browser, and the
+     same bio on an account follows you. Registering the route is not
+     the same as shipping the feature; this is the door. */
+  if (DB.isLive) {
+    const acct = Auth.account();
+    wrap.append(
+      el("section", { class: "block" }, [
+        el("h2", { class: "h2", text: "Account" }),
+        el("button", { class: "row", type: "button", style: "margin-top:8px", onclick: () => go("account") }, [
+          el("span", { class: "iconbtn", html: icon(acct.signedIn ? "check" : "people", { size: 20 }) }),
+          el("span", { class: "row__body" }, [
+            el("span", { class: "row__title", text: acct.signedIn ? "Signed in" : "Browsing as a guest" }),
+            el("span", { class: "row__sub", text: acct.signedIn
+              ? acct.email
+              : acct.awaitingConfirmation
+                ? `Waiting on confirmation for ${acct.email}`
+                : "Create an account to keep this on another device" }),
+          ]),
+          el("span", { class: "iconbtn", html: icon("arrow", { size: 20 }) }),
+        ]),
+      ])
+    );
+  }
 
   /* ---------------- picture ---------------- */
   let avatarUrl = me.avatar_url || "";
