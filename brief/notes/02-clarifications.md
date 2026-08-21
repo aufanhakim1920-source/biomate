@@ -265,3 +265,65 @@ edge-function secret. Consequences:
   silent capability failure reads as a broken build.
 - Peak & Pan's pattern of pasting a key into `localStorage` at runtime is **not**
   usable here — it works for a solo user, not for judges opening a link.
+
+---
+
+## 2026-08-22 — PRECEDENCE, and a decision I got wrong because of it
+
+> *"the one on whiteboard, and context is the priority you should follow, these
+> figma is the structure and u can add like these if it is not to what i gave you"*
+
+**The order of authority, from now on:**
+
+1. **The written brief + the whiteboard photos — what gets BUILT.** The feature
+   set comes from here. If the Figma is missing something the brief asks for, the
+   brief wins and it gets built anyway.
+2. **The Figma — how it is STRUCTURED and how it LOOKS.** Layout, hierarchy,
+   palette, type, nav, component shapes.
+3. **Figma-only features — additive.** Something in the design that the brief
+   never mentioned is a bonus to keep, not a contradiction to resolve away.
+
+This is the opposite of how I had been reading it. I had been treating the Figma
+as the newer and therefore more authoritative source, and resolving conflicts in
+its favour. Wrong: **the design is unfinished, the brief is not.** Absence from
+the Figma is not evidence against a feature — it is just a frame nobody has drawn
+yet.
+
+### ⚠️ Reversal: the availability picker is back IN
+
+I dropped it (see the section above) because the Figma's event page shows a
+**fixed date set by the host** and a *"Message tanish.rathor to RSVP"* CTA, with
+no poll anywhere. Under the correct precedence that reasoning does not hold.
+
+**The brief is explicit** — Milestone 2: *"a button that sends them to a calendar
+availability page similar to that of Lettuce Meet."* **The whiteboard is explicit
+too** — *"give availability"*, *"add to calendar widget"*, *"keep track on the
+plan"*, all hanging off the permanent planning chat.
+
+**Both sources can be honoured at once, and the result is better than either:**
+
+- The host **proposes** a date when creating the hike — the Figma's structure,
+  and what makes a card, a list row and a notification all have something to show.
+- Inside the group chat, an **availability button** opens the LettuceMeet-style
+  grid — the brief's Milestone 2. Members paint when they are free; the overlap
+  heatmap shows the best window; the host can **confirm or move** the date to it.
+
+So the proposed date is a *starting point the group can converge on*, not an
+immovable fact. That is closer to how a hike actually gets organised than either
+source alone, and it means no screen is left without a date.
+
+**Consequences:**
+- `hikes.date` becomes a **proposed** date plus a `confirmed` flag.
+- New table `availability` — `hike_id`, `user_id`, and the slots they marked.
+- The availability grid returns to the reference list for Variant. It is the
+  hardest UI in the app and there is no design for it, which is exactly why a
+  reference is worth having.
+
+### What this does NOT change
+
+- **The swipe card is still a hosted hike.** That reading came from the brief
+  ("matching with hiking groups") and Aufan's own words ("their favourite photo
+  together") as much as from the Figma — all three agree, so precedence never
+  had to arbitrate.
+- **Photoscan stays.** It appears only in the Figma, which under rule 3 makes it
+  additive rather than contradictory. It keeps nav slot 2 and it stays real.

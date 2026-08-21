@@ -38,7 +38,7 @@ features.
 |---|---|
 | Who creates a group? | **Nobody — there are no standing groups.** A host creates a *hike*, and the hike is what you swipe on. Swiping right requests to join and drops you in that hike's chat. |
 | Person, group, or event on the card? | **A hosted hike.** Reconciles the brief, Aufan's "group photo", and the Figma's host/RSVP flow. |
-| Availability picker? | **Dropped.** Host sets the date, others RSVP — what the Figma shows. Goes in the PRD's *Not built* with the reasoning, not silently omitted. |
+| Availability picker? | ⚠️ **REVERSED 2026-08-22 — it is IN.** I dropped it on the Figma's evidence; the brief and whiteboard both ask for it, and they outrank the Figma. Host *proposes* a date (Figma structure), the group paints availability in the chat (brief Milestone 2), host confirms or moves to the best overlap. |
 | Photoscan? | **Real identification**, via a Supabase Edge Function so the key never reaches the browser. Becomes the product's one honest AI claim. |
 | Phone or desktop? | **Phone.** Figma frames are 402×874 (iPhone 16/17 Pro). |
 
