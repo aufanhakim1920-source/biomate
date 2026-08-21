@@ -201,7 +201,7 @@
 }
 .chiplist__x { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; color: var(--brand-text); }
 
-.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 14px var(--pad); }
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 14px var(--pad); }
 .tile {
   display: flex; align-items: center; gap: 10px;
   min-height: 62px;
@@ -241,7 +241,7 @@
 
 .grid {
   display: grid;
-  grid-template-columns: 42px repeat(var(--cols), 1fr);
+  grid-template-columns: 42px repeat(var(--cols), minmax(0, 1fr));
   gap: 3px;
   padding: 0 var(--pad);
 }
@@ -284,7 +284,7 @@
 .legend__sw--me { background: var(--cream); box-shadow: inset 0 0 0 2px var(--forest); }
 
 /* ---------------- profile ---------------- */
-.statgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 6px var(--pad); }
+.statgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 6px var(--pad); }
 .stat {
   padding: 14px;
   border-radius: var(--r-lg);
@@ -377,7 +377,7 @@
 
 /* ---------------- photos + the lens ---------------- */
 .lenswrap { position: relative; margin: 0 var(--pad); --lx: 50%; --ly: 44%; }
-.pgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.pgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .pgrid__cell { aspect-ratio: 1; border-radius: var(--r-sm); overflow: hidden; }
 .pgrid__cell img { width: 100%; height: 100%; object-fit: cover; }
 
@@ -410,7 +410,7 @@
 .lens__rim[data-held="1"] { cursor: grabbing; box-shadow: 0 10px 28px rgba(0,0,0,.34); }
 
 /* ---------------- badges ---------------- */
-.badgegrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 6px var(--pad); }
+.badgegrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 6px var(--pad); }
 .badge {
   padding: 14px;
   border-radius: var(--r-lg);
@@ -450,7 +450,7 @@
 }
 
 /* ---------------- trail ---------------- */
-.trailstats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 6px var(--pad); }
+.trailstats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 6px var(--pad); }
 .trailstat { text-align: center; padding: 12px 6px; border-radius: var(--r-lg); background: linear-gradient(160deg, var(--peach-0), var(--peach-1)); box-shadow: var(--lift-1); }
 .big { display: block; font-size: 1.5rem; font-weight: 700; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 .route { width: 100%; height: auto; border-radius: var(--r-lg); box-shadow: var(--lift-1); }
@@ -544,12 +544,12 @@
   }
 
   /* let the extra width actually do something */
-  .statgrid  { grid-template-columns: repeat(4, 1fr); }
-  .badgegrid { grid-template-columns: repeat(3, 1fr); }
-  .tiles     { grid-template-columns: repeat(4, 1fr); }
-  .pgrid     { grid-template-columns: repeat(4, 1fr); }
-  .stack     { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .fadestack { display: grid; grid-template-columns: 1fr 1fr; }
+  .statgrid  { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .badgegrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .tiles     { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .pgrid     { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .stack     { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .fadestack { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
   /* a full-width swipe card on a wide screen looks absurd */
   .deck { max-width: 420px; margin-inline: auto; height: min(70vh, 540px); }
@@ -564,7 +564,7 @@
 /* Between phone and laptop: keep one column, just let it breathe. */
 @media (min-width: 620px) and (max-width: 899px) {
   #app { max-width: 560px; box-shadow: var(--lift-2); }
-  .statgrid { grid-template-columns: repeat(4, 1fr); }
+  .statgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .deck { max-width: 400px; margin-inline: auto; }
   .deck__actions { max-width: 400px; margin-inline: auto; }
 }
@@ -877,6 +877,6 @@
   }
   .home__left .ausmap { max-width: none; margin-inline: 0; }
   .home__right .missions { margin: 0 var(--pad) 0 0; }
-  .home__right .fadestack { grid-template-columns: 1fr; padding-right: var(--pad); padding-left: 0; }
-  .home__right .stack { grid-template-columns: 1fr; padding-right: var(--pad); padding-left: 0; }
+  .home__right .fadestack { grid-template-columns: minmax(0, 1fr); padding-right: var(--pad); padding-left: 0; }
+  .home__right .stack { grid-template-columns: minmax(0, 1fr); padding-right: var(--pad); padding-left: 0; }
 }

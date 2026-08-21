@@ -315,7 +315,7 @@
   width: min(420px, calc(100% - 24px));
   height: var(--nav-h);
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   align-items: center;
   background: linear-gradient(160deg, var(--peach-0), var(--peach-1));
   border-radius: var(--r-pill);
