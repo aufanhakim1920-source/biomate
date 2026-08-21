@@ -11,6 +11,49 @@ wrong once.
 
 ---
 
+## ⚠️ The decision this forces, and it is needed BEFORE the first screen
+
+Because the GitHub Pages demo is live *throughout* the build, how keys reach the
+browser is settled now, not at deploy time.
+
+**Peak & Pan kept its key off the public demo** — `index.html` only loaded
+`config.local.js` when `location.hostname` was localhost, so the hosted page never
+even requested it (no 404 in front of judges), and it used `document.write` for
+that load because it is synchronous, where an injected `<script>` would race
+`db.js`. Consequence, by Aufan's choice: the public demo ran on **local storage
+only**.
+
+**That cannot work here.** Biomate is a social app. A group chat, a shared
+availability grid, and "number of unique people you hiked with" are all
+meaningless on single-browser local storage. **A judge opening the demo would see
+an app talking to itself.**
+
+**So: ship the publishable key in the committed `config.js` and let the Pages
+demo run live.** This is safe *by design* and is Supabase's documented model —
+the publishable key identifies the project and grants nothing; Row Level Security
+plus `auth.uid()` is what protects the data. It is only safe because identity was
+changed to real anonymous auth; it would **not** have been safe with Peak & Pan's
+client-set `device_id` header, which is exactly why that project kept its key
+private.
+
+Conditions that make it genuinely safe, all already true or scheduled:
+- Every table has RLS on, with write policies checking `user_id = auth.uid()`.
+- Storage writes are confined to a folder named after the caller's uid, enforced
+  by Postgres.
+- The trigger functions have `EXECUTE` revoked from `anon` and `authenticated`,
+  so they are not reachable over `/rest/v1/rpc/`.
+- **`service_role` never touches a file** — env var only, and only for
+  server-side scripts.
+- Advisors report zero security lints. Re-run `get_advisors` after every schema
+  change, not just once.
+
+⚠️ **A public demo on a live database is a real database.** Anyone can create an
+anonymous user and write rows. Before the link goes out: cap what an anonymous
+user can insert, and be ready to wipe test data. This is a demo, not a product —
+say so if asked.
+
+---
+
 ## During the build — not deferred
 
 - [ ] **Vault + memory stay in sync, same turn.** A memory file, its mirrored
@@ -76,20 +119,33 @@ wrong once.
       key must be **rotated**, not reverted.
 - [ ] README current: what it is, how to run it, the live link, the stack.
 
-### 3. Netlify → the live link for the presentation
+### 3. GitHub Pages → the live link **during** the build
 
-- [ ] Aufan's plan: *"later when presented, ill use netlify for the people i
-      presented to can access live."* Static folder, zero build config.
-- [ ] **Decide the driver deliberately.** Peak & Pan's public demo ran on the
-      *local* driver so his database stayed private. Biomate is different:
-      anonymous auth + RLS on `auth.uid()` means the publishable key is safe in a
-      public page by design — that is the entire point of the identity change.
-      **A social app demoed on local-only storage cannot show a group chat**, so
-      the live driver is probably right here. Ask before deploying either way.
-- [ ] Verify the deployed URL actually renders, with no console errors, before
-      sending it to anyone.
+Aufan, 2026-08-21: *"since we might rn trial and error netlify ill do it after it
+is 100 percent finish, for now use github so other can see and judge."*
 
-### 4. Vault, last
+**GitHub Pages is the demo for the whole build.** It redeploys on every push, so
+the link people judge never goes stale, and there is no second place to remember
+to update. **Netlify is the final step and Aufan does it himself**, once the app
+is finished — do not set it up, do not ask about it before then.
+
+- [ ] ⚠️ **Pages requires a public repo on a free account.** So step 2 and this
+      one happen together — there is no private-repo Pages without paying.
+- [ ] Enable when there is a **first working screen**, not before. An empty page
+      is worse than no link, and the secret audit belongs at the moment of
+      flipping, not weeks earlier.
+- [ ] `gh api -X POST repos/aufanhakim1920-source/biomate/pages -f source[branch]=main -f source[path]=/`
+- [ ] Enforce HTTPS.
+- [ ] **Verify the deployed URL actually renders** — load it, read the console,
+      screenshot it. A demo link that 404s in front of a judge is worse than not
+      sending one.
+
+### 4. Netlify → **last, and Aufan's job**
+
+Only when the app is 100% finished. He will do it. Nothing to prepare beyond
+keeping the build a plain static folder, which it already is.
+
+### 5. Vault, last
 
 - [ ] `Claude Second Brain/Coding Claude/Biomate.md` current — status, links,
       what shipped, what didn't.
