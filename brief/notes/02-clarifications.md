@@ -74,3 +74,111 @@ nothing catches a bad decision except tests and actually looking at the screen.
 So the [[How to Verify a Web Page You Cannot See]] discipline matters *more* here,
 not less — screenshot it and drive it with real events before calling anything
 done.
+
+---
+
+## 2026-08-21 — Three looks pulled from the design library
+
+> *"just note this so we can use the card animation u remmber the one we can swipe
+> left or right and see the next one, and also if u see i can use bookshelf for the
+> type of things u wanna see on someones profile, and when u go to their photo
+> section book u can use the blurr circle thingy, where we can do it also in phone"*
+
+He is shopping in the library rather than letting me default — which is exactly
+what the library is for. Three assignments, all with prior art:
+
+### 1. Swipe deck → the foil card stack
+
+From [[Aufan Foil Portfolio]] (reused in Peak & Pan v3 for dishes). Three nested
+layers, because tilt and sheen both want `transform` and whichever writes last
+wins:
+
+```
+.card        perspective
+└ .card__tilt   JS writes the pointer/drag tilt here
+  └ .card__face CSS owns the artwork and the foil sheen
+```
+
+**The hard-won number: a stack needs far bigger offsets than feel right.** 6–8px
+between cards in a pile vanishes completely behind the top card. It took **13–18px
+of x, up to 56px of y, and 4°+ of rotation** before it read as more than one card.
+Start there, do not start small.
+
+Holographic sheen: a `repeating-linear-gradient` of rainbow bands at
+`background-size: 300%`, position driven from the pointer, `mix-blend-mode:
+color-dodge`, plus a second radial `overlay` layer for specular glare. The 3×
+size against a 0→1 pointer ratio is what makes a small movement sweep light a
+long way — that speed differential is what reads as *light on a surface*. **Keep
+wide `transparent` gaps between bands and cap opacity around .34**, or the foil
+eats the card's own colour and every card looks identical.
+
+For Biomate the card face is the group's favourite photo (above), so the foil
+becomes a glaze over a photograph rather than over flat artwork — likely needs
+the opacity even lower. Verify, don't assume.
+
+### 2. Profile sections → the bookshelf
+
+From [[Aufan Shelf Portfolio]] (`portfolio-desk`, the one he froze as his
+favourite), reused unprompted in Peak & Pan v3 as the settings screen. Each book
+is three faces off a spine div — spine, top pages, fore-edge — via
+`rotateY(-90deg)` and `rotateX(-90deg)`, varying width and height per book, one
+or two leaned with `rotateZ` so the row is not robotic. Page texture is a
+`repeating-linear-gradient` of 1px lines.
+
+**Here it becomes the profile's table of contents**: each book is a section of
+someone — photos, hikes completed, badges, gear, reviews. You pull a book off the
+shelf to open that section. It answers a real problem too, which is that a
+profile with six equal-weight tabs looks like a settings menu; a shelf makes the
+sections feel like *things a person has accumulated*, which is the right emotional
+register for a social app.
+
+### 3. Photo section → the focus lens, **on phone**
+
+From ref 20 Sanctuary, scaled up for [[Aufan Contact Sheet Portfolio]]: one veil
+over the whole grid with a hole punched at the pointer.
+
+⚠️ **He is explicitly overriding the existing rule.** [[Web Elements Catalogue]]
+says to hide the lens below the pointer breakpoint because "it's a mouse idea, and
+on touch it just hides content." He wants it on phone. **The reference is the
+lesson — so solve it, don't refuse it.** Worked answer written up in the
+catalogue; short version:
+
+**Aufan's spec, which overrides mine:**
+
+> *"i think just like in phone it is a circle there, and if u hold u kinda drag
+> it around for phone ones for the blurr thingy"*
+
+**A visible circle sits on the grid. Press it, drag it, let go — it stays where
+you left it.** Direct manipulation, not scroll.
+
+I had proposed pinning the lens to the viewport centre and letting scroll carry
+photos through it. **His is better and the reason is worth keeping:** you use a
+lens to inspect *a particular photo you have already spotted*, so the interaction
+has to be "point at that one", not "scroll until it arrives". Mine turned an
+active choice into waiting. Noted as a rejected alternative, not deleted, because
+the pinned version is still the right answer for a *feed* you scroll rather than
+a *grid* you scan.
+
+Three problems it has to solve, with the answers:
+
+- **Your finger covers the thing the lens reveals.** Offset the lens centre
+  ~72px **above** the touch point while dragging — the same lift iOS uses for its
+  text-selection magnifier, so it is already a learned gesture. Snap the offset
+  in over ~120ms on press so the jump reads as the lens *lifting*, not as a
+  mis-hit.
+- **Dragging the lens must not scroll the grid.** `touch-action: none` on the
+  circle only. Everywhere else the page scrolls normally, so there is no
+  hold-delay to wait through and no gesture conflict to arbitrate.
+- **It has to look grabbable.** A hairline rim plus a soft outer shadow at rest;
+  on press, scale the rim ~1.06 and deepen the shadow. Without a rim the lens
+  reads as a rendering artefact rather than a control.
+
+At rest it sits slightly above centre (~44%, out of thumb territory) so it is
+visible in the first frame and the mechanic needs no explanation. Release leaves
+it in place, which is what makes "drag it over, then tap the photo" work as one
+continuous move.
+
+Desktop keeps pointer-follow. **Same component, same `--x/--y` custom properties
+— only the source of the values changes.**
+
+
