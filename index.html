@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#D2552A">
+<title>Biomate</title>
+<meta name="description" content="Find people to walk with. Swipe onto a hike someone is hosting, land in the group chat, plan it together, then record the trail.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,700;1,9..144,900&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/screens.css">
+
+<!--
+  config.js ships EMPTY and committed. config.local.js holds the real
+  values and is gitignored.
+
+  document.write is used deliberately: it is synchronous, so PP_CONFIG
+  is set before db.js reads it. An injected <script> would race.
+
+  The localhost gate means a deployed build never even REQUESTS the
+  local file, which avoids a 404 in the network tab in front of judges.
+-->
+<script src="config.js"></script>
+<script>
+  if (["localhost", "127.0.0.1", ""].includes(location.hostname)) {
+    document.write('<script src="config.local.js"><\/script>');
+  }
+</script>
+</head>
+<body>
+
+<a class="skip-link" href="#screen">Skip to content</a>
+
+<!--
+  ES modules are blocked as cross-origin from a file:// page, so the
+  whole app silently fails to boot and the screen just stays empty.
+  A silent capability failure reads as a broken build — this says what
+  is wrong and how to fix it. Peak & Pan lost a whole feature to
+  exactly this, invisibly.
+-->
+<div id="file-warning">
+  <b>Biomate needs to be served over http.</b><br>
+  You've opened this file directly, and browsers block JavaScript modules
+  on <code>file://</code>. Run <code>npx serve</code> in this folder, or open
+  <code>http://localhost:3500</code>.
+</div>
+
+<div id="app">
+  <div id="status" class="statusline" role="status" aria-live="polite"></div>
+  <main id="screen" tabindex="-1"></main>
+</div>
+
+<div id="live" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+  if (location.protocol === "file:") {
+    document.getElementById("file-warning").style.display = "block";
+  }
+</script>
+<script type="module" src="js/main.js"></script>
+
+</body>
+</html>

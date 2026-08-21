@@ -193,3 +193,32 @@ revoke execute on function public.touch_updated_at()     from public, anon, auth
 --   2. RLS on, with the read policy separate from the write policy
 --   3. write policies check user_id = auth.uid() — never a header
 -- ============================================================
+
+
+-- ============================================================
+-- DOMAIN TABLES  (applied 2026-08-22)
+-- A hike someone is HOSTING is what you swipe on, so the event IS
+-- the group. There are no standing groups, no membership lifecycle
+-- beyond joining, and "unique people you have hiked with" falls
+-- straight out of co-membership.
+-- ============================================================
+-- hikes         host, title, photo, region, difficulty, tags,
+--               proposed_date + confirmed_date, capacity, status
+-- hike_members  (hike_id, user_id) + status requested|joined|left
+-- swipes        (user_id, hike_id) + direction — a right swipe is an
+--               auditable join request, and swipes are PRIVATE so
+--               nobody can see who passed on them
+-- messages      one thread per hike, members-only both ways
+-- plans         one row per hike: agenda, stop_points, meeting, gear
+-- availability  (hike_id, user_id) + slots text[] of "YYYY-MM-DD:HH"
+-- trail_logs    distance, duration, ascent, route jsonb
+-- scans         Photoscan history, private to its owner
+--
+-- Membership checks use private.is_member(hike uuid), deliberately in
+-- a PRIVATE schema: PostgREST only exposes `public`, so the helper is
+-- usable inside policies but not callable over HTTP. That is what
+-- keeps the security advisor at zero lints while still allowing
+-- members-only reads.
+--
+-- The full statements live in the migration history on the project
+-- (supabase migrations list). This file is the narrative record.

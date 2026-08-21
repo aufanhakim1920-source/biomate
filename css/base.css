@@ -1,0 +1,164 @@
+/* ============================================================
+   Biomate — reset, typography, accessibility primitives
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+* {
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--t-md);
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* dvh, not vh — vh sits under the browser chrome on iOS and hides
+     the bottom nav. overscroll kills the rubber-band. */
+  min-height: 100vh;
+  min-height: 100dvh;
+  overscroll-behavior-y: none;
+}
+
+img, svg, video { display: block; max-width: 100%; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { background: none; border: none; cursor: pointer; }
+a { color: var(--brand-text); }
+
+/* ------------------------------------------------------------
+   Focus. Never `outline: none` without a replacement — a keyboard
+   user with no focus ring is a user who cannot see where they are.
+   :focus-visible so a mouse click doesn't leave a ring behind.
+   ------------------------------------------------------------ */
+:focus-visible {
+  outline: 3px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ------------------------------------------------------------
+   Screen-reader-only. Used for the live region and for labels on
+   icon-only controls. NOT display:none — that hides it from
+   assistive tech too, which defeats the point.
+   ------------------------------------------------------------ */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: 8px; top: -60px;
+  z-index: 200;
+  background: var(--brand-ink);
+  color: var(--on-brand);
+  padding: 12px 18px;
+  border-radius: var(--r-pill);
+  font-weight: 600;
+  transition: top var(--fast) var(--ease-out);
+}
+.skip-link:focus { top: 8px; }
+
+/* ------------------------------------------------------------
+   Type
+   ------------------------------------------------------------ */
+.display {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-style: italic;
+  font-size: var(--t-2xl);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-variation-settings: "SOFT" 60, "WONK" 1, "opsz" 40;
+}
+
+.h2 { font-size: var(--t-lg); font-weight: 700; letter-spacing: -0.01em; }
+.meta { font-size: var(--t-sm); color: var(--ink-soft); }
+.tiny { font-size: var(--t-xs); color: var(--ink-faint); }
+
+/* ------------------------------------------------------------
+   Motion is user-driven. If someone asks for less of it, they get
+   none — including the JS-driven card physics, which check this
+   media query themselves.
+   ⚠️ --force-prefers-reduced-motion does NOT reach matchMedia in
+   headless Chrome; CSS honours it, JS does not. Verify another way.
+   ------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ------------------------------------------------------------
+   App shell
+   ------------------------------------------------------------ */
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  max-width: 460px;          /* phone-first; centred on a desktop */
+  margin: 0 auto;
+  position: relative;
+  background: var(--bg);
+}
+
+#screen {
+  flex: 1;
+  padding-bottom: calc(var(--nav-h) + var(--safe-b) + 24px);
+}
+
+/* The router focuses #screen on every navigation so a keyboard user
+   lands in the new content and a screen reader announces it. That is
+   PROGRAMMATIC focus though, and painting a 3px ring around the entire
+   viewport for it just looks like a rendering fault. Real controls
+   inside keep their rings. */
+#screen:focus, #screen:focus-visible { outline: none; }
+
+/* one-shot entrance: plays on arrival, settles, never loops */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+.enter > * { animation: rise var(--med) var(--ease-out) both; }
+.enter > *:nth-child(1) { animation-delay: 0ms; }
+.enter > *:nth-child(2) { animation-delay: 40ms; }
+.enter > *:nth-child(3) { animation-delay: 80ms; }
+.enter > *:nth-child(4) { animation-delay: 120ms; }
+.enter > *:nth-child(5) { animation-delay: 160ms; }
+.enter > *:nth-child(6) { animation-delay: 200ms; }
+
+/* ------------------------------------------------------------
+   The file:// banner. ES modules are blocked as cross-origin from
+   a file:// page, so the whole app silently fails to boot. A silent
+   capability failure reads as a broken build — say what's wrong.
+   ------------------------------------------------------------ */
+#file-warning {
+  display: none;
+  padding: 18px var(--pad);
+  background: var(--brand-ink);
+  color: var(--on-brand);
+  font-size: var(--t-sm);
+  line-height: 1.5;
+}
+#file-warning code {
+  background: rgba(255,255,255,.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+}

@@ -1,0 +1,345 @@
+/* ============================================================
+   Biomate — components
+   Every touch target is at least var(--tap). Every colour pairing
+   here was checked against WCAG AA before it was written.
+   ============================================================ */
+
+/* ---------------- top bar ---------------- */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px var(--pad) 8px;
+  min-height: 60px;
+}
+.topbar .display {
+  flex: 1;
+  text-align: center;
+  font-size: clamp(1.05rem, 5.2vw, 1.55rem);
+  line-height: 1.12;
+}
+.topbar--left .display { text-align: left; }
+
+.iconbtn {
+  width: var(--tap); height: var(--tap);
+  display: grid; place-items: center;
+  border-radius: 50%;
+  color: var(--brand-text);
+  flex-shrink: 0;
+}
+.iconbtn--ring { border: 1.5px solid var(--brand-text); width: 34px; height: 34px; }
+.iconbtn:active { transform: scale(.94); }
+
+.avatar {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--cream);
+  flex-shrink: 0;
+}
+.avatar--lg { width: 56px; height: 56px; }
+
+/* overlapping cluster — the "+N more" device from reference 24.
+   Here it carries "unique people you've hiked with". */
+.avstack { display: flex; align-items: center; }
+.avstack .avatar { margin-left: -12px; border: 2px solid var(--surface); }
+.avstack .avatar:first-child { margin-left: 0; }
+.avstack__more {
+  margin-left: 8px;
+  font-size: var(--t-xs);
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+/* ---------------- buttons ---------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--tap);
+  padding: 12px 22px;
+  border-radius: var(--r-pill);
+  font-size: var(--t-md);
+  font-weight: 600;
+  transition: transform var(--fast) var(--ease-out), background var(--fast);
+}
+.btn:active { transform: scale(.97); }
+
+/* brand-ink, not brand — white text needs 4.5:1 and only this one has it */
+.btn--primary { background: var(--brand-ink); color: var(--on-brand); }
+.btn--ghost   { background: var(--surface); color: var(--ink); border: 1px solid var(--hairline); box-shadow: var(--lift-1); }
+.btn--block   { width: 100%; }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+
+/* ---------------- chips ---------------- */
+.chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px var(--pad) 12px;
+  scrollbar-width: none;
+}
+.chips::-webkit-scrollbar { display: none; }
+
+.chip {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 8px 16px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--t-sm);
+  white-space: nowrap;
+  transition: background var(--fast), color var(--fast), border-color var(--fast);
+}
+.chip[aria-pressed="true"] {
+  background: var(--brand-ink);
+  color: var(--on-brand);
+  border-color: var(--brand-ink);
+}
+
+/* ---------------- cards ---------------- */
+.card {
+  background: linear-gradient(160deg, var(--peach-0), var(--peach-1));
+  border-radius: var(--r-lg);
+  padding: 16px;
+  box-shadow: var(--lift-1);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: var(--r-lg);
+  background: linear-gradient(160deg, var(--peach-0), var(--peach-1));
+  box-shadow: var(--lift-1);
+  transition: transform var(--fast) var(--ease-out);
+}
+.row:active { transform: scale(.985); }
+.row__body { flex: 1; min-width: 0; }
+.row__title { font-weight: 700; font-size: var(--t-md); }
+/* two lines that must not run together — display:block on the pair.
+   This exact bug has appeared four times across these projects. */
+.row__title, .row__sub { display: block; }
+.row__sub {
+  font-size: var(--t-sm);
+  color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stack { display: flex; flex-direction: column; gap: 10px; padding: 0 var(--pad); }
+
+/* ---------------- the swipe deck ----------------
+   Three nested layers, because the drag and the sheen both want
+   `transform` and whichever writes last wins:
+     .deck__card  → JS writes the drag transform here
+     .deck__face  → CSS owns the artwork
+   ------------------------------------------------ */
+.deck {
+  position: relative;
+  margin: 0 var(--pad);
+  height: min(62vh, 460px);
+  perspective: 1000px;
+}
+
+.deck__card {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-xl);
+  will-change: transform;
+  touch-action: none;              /* the card drags; the page doesn't */
+  cursor: grab;
+}
+.deck__card:active { cursor: grabbing; }
+
+/* A stack needs far bigger offsets than feel right — 6-8px vanishes
+   entirely behind the top card. Learned on the foil portfolio.
+
+   ⚠️ And the offsets must be measured, not eyeballed: translateY(14px)
+   with scale(.94) put the back cards' bottom edges at 641px and the top
+   card's at 641px — the shrink pulled the bottom up by exactly as much
+   as the translate pushed it down, so the stack was invisible while
+   every value looked reasonable in the stylesheet.
+   transform-origin: bottom pins the shrink to the bottom edge, so the
+   translate is the only thing moving it and the offset is real. */
+.deck__card[data-depth="1"],
+.deck__card[data-depth="2"] { transform-origin: bottom center; }
+.deck__card[data-depth="1"] { transform: translateY(16px) scale(.955) rotate(-1.6deg); }
+.deck__card[data-depth="2"] { transform: translateY(32px) scale(.91)  rotate(1.4deg); }
+.deck__card[data-depth="3"] { opacity: 0; pointer-events: none; }
+
+.deck__face {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  background: var(--cream);
+  box-shadow: var(--lift-3);
+}
+.deck__photo { width: 100%; height: 100%; object-fit: cover; }
+
+/* empty-state artwork, drawn — a brand-new group has no favourite
+   photo yet, and a missing image must never break a screen */
+.deck__placeholder {
+  width: 100%; height: 100%;
+  display: grid; place-items: center;
+  background:
+    radial-gradient(circle at 30% 25%, var(--amber) 0%, transparent 45%),
+    linear-gradient(160deg, var(--brand-soft), var(--brand-text));
+}
+
+.deck__scrim {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 20px 18px 18px;
+  background: var(--scrim);
+  color: var(--on-photo);
+}
+/* clamped to two lines: a long title used to eat half the card and
+   push the bio out of the scrim */
+.deck__name {
+  font-size: clamp(1.15rem, 5.2vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: -.02em;
+  line-height: 1.12;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.deck__line { display: flex; align-items: center; gap: 6px; font-size: var(--t-sm); opacity: .95; margin-top: 2px; }
+.deck__bio {
+  font-size: var(--t-sm);
+  margin-top: 10px;
+  opacity: .92;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.deck__tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.deck__tag {
+  font-size: var(--t-xs);
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  background: rgba(255,255,255,.22);
+  backdrop-filter: blur(6px);
+  color: var(--on-photo);
+}
+
+.deck__badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: var(--t-xs); font-weight: 600;
+  padding: 5px 11px; margin-top: 8px;
+  border-radius: var(--r-pill);
+  background: rgba(0,0,0,.42);
+  backdrop-filter: blur(6px);
+  color: var(--on-photo);
+}
+
+/* the YES / NOPE stamps that fade in as you drag */
+.deck__verdict {
+  position: absolute;
+  top: 26px;
+  padding: 8px 16px;
+  border-radius: var(--r-sm);
+  border: 3px solid currentColor;
+  font-weight: 800;
+  font-size: var(--t-lg);
+  letter-spacing: .08em;
+  opacity: 0;
+  pointer-events: none;
+}
+.deck__verdict--yes  { left: 22px;  color: #1E9E5A; transform: rotate(-12deg); }
+.deck__verdict--nope { right: 22px; color: #D64545; transform: rotate(12deg); }
+
+/* the accessible path — these are not decoration, they are how the
+   deck is used without a pointer */
+.deck__actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 28px;
+  padding: 22px 0 6px;
+}
+.deck__act {
+  width: 62px; height: 62px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  box-shadow: var(--lift-2);
+  transition: transform var(--fast) var(--ease-spring);
+}
+.deck__act:active { transform: scale(.9); }
+.deck__act--no  { background: var(--surface); color: #D64545; border: 1px solid var(--hairline); }
+.deck__act--yes { background: var(--brand-ink); color: var(--on-brand); }
+
+.deck__empty {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  text-align: center;
+  padding: 24px;
+  color: var(--ink-soft);
+}
+
+/* ---------------- bottom nav ---------------- */
+.nav {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(10px + var(--safe-b));
+  width: min(420px, calc(100% - 24px));
+  height: var(--nav-h);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: center;
+  background: linear-gradient(160deg, var(--peach-0), var(--peach-1));
+  border-radius: var(--r-pill);
+  box-shadow: var(--lift-2);
+  z-index: 60;
+}
+.nav__item {
+  height: 100%;
+  display: grid; place-items: center;
+  color: var(--brand-text);
+  border-radius: var(--r-pill);
+}
+.nav__item[aria-current="page"] { color: var(--brand-ink); }
+.nav__item[aria-current="page"] svg { fill: currentColor; }
+.nav__item:active { transform: scale(.9); }
+
+/* ---------------- toast ---------------- */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--nav-h) + var(--safe-b) + 20px);
+  transform: translate(-50%, 12px);
+  background: var(--ink);
+  color: var(--bg);
+  padding: 12px 20px;
+  border-radius: var(--r-pill);
+  font-size: var(--t-sm);
+  box-shadow: var(--lift-2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--med) var(--ease-out), transform var(--med) var(--ease-out);
+  z-index: 90;
+}
+.toast[data-show="1"] { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------------- status strip ---------------- */
+.statusline {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px var(--pad);
+  font-size: var(--t-xs);
+  color: var(--ink-faint);
+}
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--forest); }
+.dot--warn { background: var(--amber); }

@@ -1,0 +1,146 @@
+/* ============================================================
+   Biomate — design tokens
+   Read off the team's Figma (NNSWKzLDoVGtwtM7D0o25u), with one
+   correction: the terracotta fails WCAG AA for normal text.
+
+     white on #D2552A = 4.14:1  (needs 4.5)
+     #D2552A on cream = 3.82:1
+
+   So there are THREE oranges doing three jobs, not one doing all
+   of them badly:
+     --brand      #D2552A  icons, borders, active nav, fills  (3:1 rule)
+     --brand-ink  #C14E27  button fills carrying white text   (4.79:1)
+     --brand-text #A32E2E  terracotta-coloured TEXT on light  (7.03:1)
+   The deep red was already in the palette as the logo ring, so the
+   brand contained its own accessible text tone all along.
+
+   ⚠️ Every token below is audited for DUAL USE. Peak & Pan shipped a
+   token that was both a background and a text colour; in dark mode the
+   text inverted to the same colour as its own surface and vanished.
+   Anything named --on-* is a constant that never moves between themes.
+   ============================================================ */
+
+:root {
+  /* ---- brand ---- */
+  --brand:       #D2552A;
+  --brand-ink:   #C14E27;
+  --brand-text:  #A32E2E;
+  --brand-soft:  #E0673A;
+  --amber:       #F0A32A;
+  --forest:      #2E6B2E;
+
+  /* ---- surfaces ---- */
+  --bg:          #FFFFFF;
+  --surface:     #FFFFFF;
+  --cream:       #FAF5EE;
+  --peach-0:     #FDEDE6;   /* card gradient start */
+  --peach-1:     #FFFFFF;   /* card gradient end   */
+  --hairline:    rgba(23, 23, 23, 0.10);
+  --scrim:       linear-gradient(to top, rgba(0,0,0,.78) 0%, rgba(0,0,0,.45) 38%, transparent 72%);
+
+  /* ---- ink ---- */
+  --ink:         #171717;
+  --ink-soft:    #5A5652;
+  --ink-faint:   #A39E99;
+
+  /* constants — identical in every theme, never inverted */
+  --on-brand:    #FFFFFF;   /* text sitting ON a brand fill */
+  --on-photo:    #FFFFFF;   /* text sitting ON a photo scrim */
+
+  /* ---- shape ---- */
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-pill: 999px;
+
+  /* ---- type ----
+     Display is a heavy brush-script italic. Fraunces at high optical
+     size + heavy weight is the closest webfont to the Figma's face and
+     it degrades to a real serif rather than to Comic Sans. */
+  --font-display: "Fraunces", "Georgia", serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, sans-serif;
+
+  /* rem-based so the OS font-size setting actually works */
+  --t-xs:  0.75rem;
+  --t-sm:  0.875rem;
+  --t-md:  1rem;
+  --t-lg:  1.125rem;
+  --t-xl:  1.375rem;
+  --t-2xl: 1.75rem;
+
+  /* ---- depth ---- */
+  --lift-1: 0 1px 2px rgba(23,23,23,.05), 0 2px 8px rgba(23,23,23,.05);
+  --lift-2: 0 2px 6px rgba(23,23,23,.06), 0 10px 24px rgba(23,23,23,.08);
+  --lift-3: 0 6px 16px rgba(23,23,23,.10), 0 20px 44px rgba(23,23,23,.14);
+
+  /* ---- motion ----
+     Everything here is one-shot and user-triggered. Nothing loops.
+     See docs/ACCESSIBILITY.md and the Motion Must Be User Driven rule. */
+  --ease-out: cubic-bezier(.22, 1, .36, 1);
+  --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+  --fast: 140ms;
+  --med: 260ms;
+
+  /* ---- layout ---- */
+  --pad: 20px;
+  --nav-h: 64px;
+  --tap: 44px;              /* minimum touch target */
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+
+/* ============================================================
+   Dark theme. Only tokens are redefined — no component rule below
+   this line ever needs to know which theme is active.
+   Guarded with :not([data-theme="light"]) so an explicit light
+   choice still wins over the OS preference.
+   ============================================================ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:        #14100E;
+    --surface:   #1E1815;
+    --cream:     #241D19;
+    --peach-0:   #2A201B;
+    --peach-1:   #1E1815;
+    --hairline:  rgba(255, 245, 238, 0.12);
+
+    --ink:       #F6EFE8;
+    --ink-soft:  #C4B7AC;
+    --ink-faint: #8A7C72;
+
+    /* lifted so they stay legible on a dark ground */
+    --brand:      #F0723E;
+    --brand-ink:  #E0673A;
+    --brand-text: #F29068;
+    --amber:      #F6B449;
+    --forest:     #6FAE5C;
+
+    --lift-1: 0 1px 2px rgba(0,0,0,.4);
+    --lift-2: 0 2px 6px rgba(0,0,0,.45), 0 10px 24px rgba(0,0,0,.35);
+    --lift-3: 0 6px 16px rgba(0,0,0,.5), 0 20px 44px rgba(0,0,0,.45);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg:        #14100E;
+  --surface:   #1E1815;
+  --cream:     #241D19;
+  --peach-0:   #2A201B;
+  --peach-1:   #1E1815;
+  --hairline:  rgba(255, 245, 238, 0.12);
+
+  --ink:       #F6EFE8;
+  --ink-soft:  #C4B7AC;
+  --ink-faint: #8A7C72;
+
+  --brand:      #F0723E;
+  --brand-ink:  #E0673A;
+  --brand-text: #F29068;
+  --amber:      #F6B449;
+  --forest:     #6FAE5C;
+
+  --lift-1: 0 1px 2px rgba(0,0,0,.4);
+  --lift-2: 0 2px 6px rgba(0,0,0,.45), 0 10px 24px rgba(0,0,0,.35);
+  --lift-3: 0 6px 16px rgba(0,0,0,.5), 0 20px 44px rgba(0,0,0,.45);
+}
