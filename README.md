@@ -12,7 +12,7 @@ new project type.
 ```
 brief/          ← YOU fill this in: notes, mocks, Figma      (read brief/README.md)
 references/     ← design references for this build            (read references/README.md)
-docs/           ← decisions, open questions, DEFINITION-OF-DONE.md
+docs/           ← decisions, open questions, DEFINITION-OF-DONE.md, ACCESSIBILITY.md
 supabase/       schema.sql — auth, profiles, media, storage, RLS
 screens/        one file per page (empty until the design lands)
 assets/         icons, fonts, images
