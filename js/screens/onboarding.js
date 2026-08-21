@@ -128,7 +128,11 @@ export async function onboarding({ id }) {
 
   async function finish() {
     await DB.saveProfile({
-      display_name: draft.display_name || me.display_name || "You",
+      /* NOT "You" — this is stored, and everyone else reads it. Skipping
+         onboarding used to name you literally "You", so the group saw
+         "You left the group" and "You: see you at 8". Matches the
+         fallback settings.js already uses. */
+      display_name: draft.display_name || me.display_name || "New hiker",
       pronouns: draft.pronouns || "",
       experience: draft.experience || "beginner",
       prefs: { interests: draft.interests || [] },

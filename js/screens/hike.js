@@ -15,6 +15,7 @@ import { icon } from "../icons.js";
 import { say } from "../a11y.js";
 import { go, back } from "../router.js";
 import { personBadge } from "../appbar.js";
+import { leaveControl } from "../leave.js";
 
 export async function hike({ id }) {
   const meId = DB.uid();
@@ -30,6 +31,9 @@ export async function hike({ id }) {
   const byId = Object.fromEntries(profiles.map((p) => [p.id, p]));
   const joined = members.filter((m) => m.status !== "left");
   const iAmIn = joined.some((m) => m.user_id === meId);
+  /* someone who was here and left — the action below has to say
+     "rejoin", not pitch the hike to them as if they had never seen it */
+  const iLeft = !iAmIn && members.some((m) => m.user_id === meId && m.status === "left");
   const iAmHost = h.host_id === meId;
   const host = byId[h.host_id] || { display_name: "someone" };
   const others = joined.filter((m) => m.user_id !== h.host_id);
@@ -127,16 +131,33 @@ export async function hike({ id }) {
       : el("button", {
           class: "btn btn--primary btn--block",
           type: "button",
-          html: `Message <b>${host.display_name}</b> to RSVP`,
+          html: iLeft ? "Rejoin this group" : `Message <b>${host.display_name}</b> to RSVP`,
           onclick: async () => {
+            /* upsert, not insert, and the conflict key is the pair —
+               so someone who left and came back has their EXISTING row
+               flipped back to joined. An insert would leave two rows
+               for one person in one group, and every count on every
+               screen would quietly read one too many. */
             await DB.upsert("hike_members", { hike_id: h.id, user_id: meId, status: "joined" }, ["hike_id", "user_id"]);
-            toast("You're in");
-            say(`Joined ${h.title}. Opening the group chat.`);
+            toast(iLeft ? "You're back in" : "You're in");
+            say(`${iLeft ? "Rejoined" : "Joined"} ${h.title}. Opening the group chat.`);
             go(`chat/${h.id}`);
           },
         });
 
   wrap.append(el("div", { class: "block" }, [action]));
+
+  /* the way out sits under the one action, never beside it — leaving
+     is never the thing you came to this page to do */
+  const leave = leaveControl({
+    hike: h,
+    members,
+    meId,
+    myName: (byId[meId] || {}).display_name,
+    context: "hike",
+  });
+  if (leave) wrap.append(leave);
+
   return wrap;
 }
 

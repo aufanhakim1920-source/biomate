@@ -16,6 +16,7 @@ import { el, avatar, toast } from "../ui.js";
 import { icon } from "../icons.js";
 import { say } from "../a11y.js";
 import { go, back } from "../router.js";
+import { leaveControl } from "../leave.js";
 
 export async function chat({ id }) {
   const meId = DB.uid();
@@ -31,6 +32,7 @@ export async function chat({ id }) {
 
   const byId = Object.fromEntries(profiles.map((p) => [p.id, p]));
   const joined = members.filter((m) => m.status !== "left");
+  const iAmIn = members.some((m) => m.user_id === meId && m.status !== "left");
 
   const wrap = el("div", { class: "chat" });
 
@@ -56,11 +58,30 @@ export async function chat({ id }) {
     ])
   );
 
+  /* ---- the way out, in the header rather than buried in a menu ----
+     Sitting beside Plan and Availability it reads as one of the things
+     you can do with a group, which is what it is. It is deliberately
+     quieter than those two and asks before it acts. */
+  const leave = leaveControl({
+    hike: h,
+    members,
+    meId,
+    myName: (byId[meId] || {}).display_name,
+    context: "chat",
+  });
+  if (leave) wrap.append(leave);
+
   /* ---- the thread ---- */
   const list = el("div", { class: "thread", role: "log", "aria-label": "Messages", "aria-live": "polite" });
   msgs.forEach((m) => list.append(bubble(m, byId, meId)));
   if (!msgs.length) {
-    list.append(el("p", { class: "meta", style: "text-align:center;padding:30px 10px", text: "Nobody's said anything yet. You could be first." }));
+    /* An empty thread means two completely different things, and
+       saying the wrong one is worse than saying nothing. If you have
+       left, the server refused the read — it is not that nobody has
+       spoken. */
+    list.append(el("p", { class: "meta", style: "text-align:center;padding:30px 10px", text: iAmIn
+      ? "Nobody's said anything yet. You could be first."
+      : "You left this group, so its messages aren't shown to you any more." }));
   }
   wrap.append(list);
 
@@ -91,7 +112,10 @@ export async function chat({ id }) {
     input,
     el("button", { class: "composer__send", type: "submit", "aria-label": "Send message", html: icon("send", { size: 20 }) }),
   ]);
-  wrap.append(form);
+  /* No composer for a thread you have left. Leaving it there would
+     offer a write the server is going to refuse — the message would
+     vanish and look like a bug in sending. */
+  if (iAmIn) wrap.append(form);
 
   /* jump to the newest message once the screen is in the document */
   requestAnimationFrame(() => { list.scrollTop = list.scrollHeight; });

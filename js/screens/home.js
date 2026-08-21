@@ -135,7 +135,10 @@ export async function home() {
     }
   });
 
-  const joinedCount = members.filter((m) => myHikes.has(m.hike_id) && m.user_id !== meId).length;
+  /* `status !== "left"` is not optional here. Without it the count of
+     people "walking with you" keeps counting anyone who left, so the
+     line goes on promising company that is no longer coming. */
+  const joinedCount = members.filter((m) => myHikes.has(m.hike_id) && m.user_id !== meId && m.status !== "left").length;
   if (joinedCount) {
     feed.push({
       to: "messages",

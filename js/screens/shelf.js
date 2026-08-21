@@ -132,7 +132,10 @@ export async function shelf({ id }) {
     wrap.append(el("p", { class: "meta", style: "padding:0 20px 10px", text: `${people.length} ${people.length === 1 ? "person" : "people"} you've walked with.` }));
     wrap.append(el("div", { class: "stack" }, people.length ? people.map((u) => {
       const p = byId[u] || { display_name: "someone" };
-      const shared = members.filter((m) => m.user_id === u && myHikeIds.has(m.hike_id)).length;
+      /* `status !== "left"` matters here: without it, someone who left
+         a shared hike still counted toward "2 hikes together". Every
+         other filter in this file had it; this one was missed. */
+      const shared = members.filter((m) => m.user_id === u && m.status !== "left" && myHikeIds.has(m.hike_id)).length;
       return el("button", { class: "row", type: "button", onclick: () => go(`person/${u}`) }, [
         avatar(p.avatar_url, p.display_name),
         el("span", { class: "row__body" }, [

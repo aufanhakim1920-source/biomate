@@ -460,3 +460,59 @@
 .avstack__btn .avatar { margin-left: 0; }
 .avstack__btn:active, .msg__who-btn:active { transform: scale(.92); }
 .avatar--xl { width: 76px; height: 76px; }
+
+/* ---------------- leaving a group ----------------
+   Mounted twice: quietly in the chat header, and under the one
+   action on the hike page. Right-aligned because it is never the
+   reason anyone opened either screen — but full size, not a tiny
+   link, because the confirm that follows it has to be hit
+   accurately and 44px is the floor everywhere else in this app.
+
+   No new colour is invented for "destructive". The palette already
+   contains a deep red that passes on light and lifts on dark
+   (--brand-text), and using the brand's own serious tone reads as
+   part of the app rather than as a warning bolted on from a kit. */
+.leavebar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0 var(--pad) 12px;
+}
+/* on the hike page it is a section like any other, not a header strip */
+.leavebar--block { padding: 4px var(--pad) 18px; }
+
+.leavebar .btn { font-size: var(--t-sm); padding: 10px 16px; }
+
+/* The question replaces the button in place and takes a whole line of
+   its own. Sharing the line was tried first: at 375px the question,
+   "Stay" and "Leave" do not fit, so the two answers were split across
+   two rows — which is the one arrangement a yes/no question must never
+   have. Question above, both answers together below. */
+.leavebar__q {
+  flex: 1 1 100%;
+  min-width: 0;
+  font-size: var(--t-sm);
+  color: var(--ink);
+  text-align: left;
+}
+
+.leavebar__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex: 1 1 100%;
+  min-width: 0;
+  font-size: var(--t-xs);
+  color: var(--ink-soft);
+  text-align: left;
+}
+.leavebar__ic { color: var(--ink-faint); flex-shrink: 0; line-height: 0; margin-top: 1px; }
+
+.btn--leave {
+  background: var(--surface);
+  color: var(--brand-text);
+  border: 1.5px solid var(--brand-text);
+  box-shadow: var(--lift-1);
+}
