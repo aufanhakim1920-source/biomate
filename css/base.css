@@ -113,7 +113,7 @@ a { color: var(--brand-text); }
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
-  max-width: 460px;          /* phone-first; centred on a desktop */
+  max-width: 460px;          /* phone-first; widened at >=900px */
   margin: 0 auto;
   position: relative;
   background: var(--bg);

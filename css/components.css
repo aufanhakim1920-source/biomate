@@ -216,6 +216,8 @@
   padding: 20px 18px 18px;
   background: var(--scrim);
   color: var(--on-photo);
+  /* belt and braces: a photo can always surprise you */
+  text-shadow: 0 1px 3px rgba(0,0,0,.55);
 }
 /* clamped to two lines: a long title used to eat half the card and
    push the bio out of the scrim */

@@ -36,7 +36,9 @@
   --peach-0:     #FDEDE6;   /* card gradient start */
   --peach-1:     #FFFFFF;   /* card gradient end   */
   --hairline:    rgba(23, 23, 23, 0.10);
-  --scrim:       linear-gradient(to top, rgba(0,0,0,.78) 0%, rgba(0,0,0,.45) 38%, transparent 72%);
+  /* strengthened once real photos landed — a bright rock face under
+     white text was genuinely hard to read at .78/.45 */
+  --scrim:       linear-gradient(to top, rgba(0,0,0,.90) 0%, rgba(0,0,0,.68) 34%, rgba(0,0,0,.28) 62%, transparent 88%);
 
   /* ---- ink ---- */
   --ink:         #171717;
