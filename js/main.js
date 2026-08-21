@@ -27,6 +27,7 @@ import { profile } from "./screens/profile.js";
 import { shelf } from "./screens/shelf.js";
 import { photoscan } from "./screens/photoscan.js";
 import { trail } from "./screens/trail.js";
+import { walk } from "./screens/walk.js";
 import { host, region } from "./screens/host.js";
 import { onboarding } from "./screens/onboarding.js";
 import { settings } from "./screens/settings.js";
@@ -45,6 +46,7 @@ route("profile",    profile,    { title: () => "Profile",           nav: "map" }
 route("shelf",      shelf,      { title: (p) => p.id || "Shelf",    nav: "map" });
 route("photoscan",  photoscan,  { title: () => "Photoscan",         nav: "camera" });
 route("trail",      trail,      { title: () => "On trail",          nav: "map" });
+route("walk",       walk,       { title: () => "A walk you did",    nav: "map" });
 route("host",       host,       { title: () => "Host a hike",       nav: "cards" });
 route("region",     region,     { title: (p) => p.id || "Region",   nav: "home" });
 route("welcome",    onboarding, { title: () => "Welcome",           nav: "" });

@@ -146,9 +146,20 @@ export function seedLocal(myId) {
     updated_by: "u-tanish",
   }];
 
+  /* Real-shaped routes, not empty arrays. A logged walk whose route is
+     [] renders as a blank map, which makes the recorder look broken on
+     first load — and the route thumbnail on the shelf is the thing
+     that makes two 4 km walks look like different days.
+
+     The Blue Mountains track deliberately contains a `null`: that is a
+     break in the recording, and it is there so the "the line breaks
+     where the signal died" behaviour is visible in the demo instead of
+     only appearing the first time someone loses signal in a gully. */
   const trail_logs = [
-    { id: "t1", hike_id: "h-dandenong", user_id: myId, distance_m: 4200, duration_s: 4980, ascent_m: 230, route: [], created_at: iso(60 * 24 * 9) },
-    { id: "t2", hike_id: "h-blue",      user_id: myId, distance_m: 11800, duration_s: 15600, ascent_m: 640, route: [], created_at: iso(60 * 24 * 30) },
+    { id: "t1", hike_id: "h-dandenong", user_id: myId, distance_m: 4200, duration_s: 4980, ascent_m: 230,
+      route: loopTrack(-37.8880, 145.3450, 150, 0.0065, 7), created_at: iso(60 * 24 * 9) },
+    { id: "t2", hike_id: "h-blue", user_id: myId, distance_m: 11800, duration_s: 15600, ascent_m: 640,
+      route: withGap(loopTrack(-33.7300, 150.3100, 240, 0.0140, 23), 96, 112), created_at: iso(60 * 24 * 30) },
   ];
 
   /* the two walks above are what makes "unique people you've hiked
@@ -173,4 +184,31 @@ export function seedLocal(myId) {
     availability: [],
     scans: [],
   };
+}
+
+/* ---- demo route shapes ----------------------------------------
+   A deterministic wobbly loop. Deterministic matters: the seed data
+   is rebuilt on every cold start, and a route that changed shape each
+   time would make "is the drawing correct?" impossible to answer by
+   looking. */
+function loopTrack(lat0, lng0, n, spread, seed) {
+  let s = seed * 7919 + 1;
+  const rnd = () => ((s = (s * 1103515245 + 12345) % 2147483648) / 2147483648);
+  const round5 = (v) => Math.round(v * 1e5) / 1e5;
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    const t = (i / n) * Math.PI * 2;
+    const r = spread * (0.62 + 0.38 * Math.sin(t * 3 + seed));
+    pts.push([
+      round5(lat0 + Math.sin(t) * r + (rnd() - 0.5) * spread * 0.05),
+      round5(lng0 + Math.cos(t) * r * 1.25 + (rnd() - 0.5) * spread * 0.05),
+    ]);
+  }
+  return pts;
+}
+
+/* drop the points between `from` and `to` and leave a pen-lift behind,
+   the way a real recording looks after the signal comes back */
+function withGap(pts, from, to) {
+  return [...pts.slice(0, from), null, ...pts.slice(to)];
 }

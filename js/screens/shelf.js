@@ -31,6 +31,7 @@ import { icon } from "../icons.js";
 import { say, reducedMotion } from "../a11y.js";
 import { landscape } from "../art.js";
 import { gallery } from "../gallery.js";
+import { drawRoute } from "../routemap.js";
 import { go, back } from "../router.js";
 import { personBadge } from "../appbar.js";
 import { catalogue, TIERS, MAX_SHOWCASE } from "../badges.js";
@@ -95,17 +96,31 @@ export async function shelf({ id }) {
       ])
     ) : [empty("No hikes yet", "Swipe right on one and it lands here.", () => go("matchmaker"), "Find a hike")]));
 
+    /* Each logged walk shows the SHAPE of the route it recorded, not
+       just its distance. That thumbnail is the whole reason for
+       recording — two walks of 4 km look identical as a number and
+       completely different as a line. */
     if (logs.length) {
       wrap.append(el("h2", { class: "sectionhead", text: "Logged trails" }));
-      wrap.append(el("div", { class: "stack" }, logs.map((l) =>
-        el("div", { class: "row" }, [
-          el("span", { class: "iconbtn", html: icon("route", { size: 20 }) }),
+      wrap.append(el("div", { class: "stack" }, logs.map((l) => {
+        const thumb = el("canvas", { class: "routethumb", width: "120", height: "120", "aria-hidden": "true" });
+        /* synchronous on purpose — see the note in screens/walk.js:
+           rAF never fires in a hidden document, which left every
+           thumbnail blank on a background tab */
+        drawRoute(thumb, Array.isArray(l.route) ? l.route : [], { empty: false });
+        return el("button", {
+          class: "row", type: "button",
+          "aria-label": `${(hikeById[l.hike_id] || {}).title || "A walk"}, ${fmtDistance(l.distance_m)}. Open the route.`,
+          onclick: () => go(`walk/${l.id}`),
+        }, [
+          thumb,
           el("span", { class: "row__body" }, [
             el("span", { class: "row__title", text: (hikeById[l.hike_id] || {}).title || "A walk" }),
             el("span", { class: "row__sub", text: `${fmtDistance(l.distance_m)} · ${Math.round(l.duration_s / 60)} min` }),
           ]),
-        ])
-      )));
+          el("span", { class: "iconbtn", html: icon("arrow", { size: 20 }) }),
+        ]);
+      })));
     }
     return wrap;
   }

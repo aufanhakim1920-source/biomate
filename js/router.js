@@ -58,6 +58,15 @@ export async function render() {
   try {
     const node = await entry.render(params);
 
+    /* Give the outgoing screen a chance to clean up before it is
+       dropped. Most screens need nothing — but the trail recorder
+       holds a GPS watch, a wake lock and an interval, and navigating
+       away without releasing them leaves the phone recording (and the
+       screen refusing to sleep) for the rest of the session. A
+       removed DOM node does not stop any of those on its own. */
+    const leaving = host.firstElementChild;
+    if (leaving) leaving.dispatchEvent(new CustomEvent("screen:leave"));
+
     host.replaceChildren(node);
     host.classList.remove("enter");
     /* reflow so the entrance animation restarts on every navigation */
