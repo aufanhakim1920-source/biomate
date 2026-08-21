@@ -1,0 +1,15 @@
+# Real keys. config.js ships empty and stays committed; the actual
+# values live here and never reach the repo.
+config.local.js
+
+# Anything committed to a public repo is world-readable forever, and a
+# leaked key must be ROTATED, not just reverted.
+.env
+.env.*
+*.key
+*.pem
+
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
