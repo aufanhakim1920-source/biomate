@@ -4,6 +4,7 @@
    ============================================================ */
 
 import { icon } from "./icons.js";
+import { landscape } from "./art.js";
 
 /** Create an element. `props.html` sets innerHTML, `props.text` textContent. */
 export function el(tag, props = {}, children = []) {
@@ -96,7 +97,12 @@ export const difficultyLabel = (d) =>
  * falls back to drawn artwork in the brand colours, per the Peak &
  * Pan rule that absent media must degrade, not explode.
  */
-export function photo(url, alt, cls = "deck__photo") {
+export function photo(url, alt, cls = "deck__photo", seed = "") {
+  /* No photo yet? Draw one. A group that hasn't picked a favourite
+     photo still needs a card worth swiping on, and an identical grey
+     placeholder on every hike is worse than no image at all. Seeded
+     from the hike's own id, so it is stable and different per hike. */
+  if (!url && seed) url = landscape(seed);
   if (!url) return el("div", { class: "deck__placeholder", role: "img", "aria-label": alt || "No photo yet" });
   const img = el("img", { class: cls, src: url, alt: alt || "", loading: "lazy", decoding: "async" });
   img.addEventListener("error", () => {

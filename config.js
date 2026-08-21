@@ -23,7 +23,7 @@
    ============================================================ */
 
 window.PP_CONFIG = {
-  driver: "local",   // "local" | "supabase"
-  url: "",           // https://<project-ref>.supabase.co
-  anonKey: "",       // publishable / anon key only
+  driver: "supabase",
+  url: "https://hworeuvvvwvxcfzgvegh.supabase.co",
+  anonKey: "sb_publishable_ygcXMo8nrgBVrCJb8k6oRg_1WUvbKIT",
 };

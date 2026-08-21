@@ -142,7 +142,7 @@ export async function matchmaker() {
   function card(h, depth) {
     const host = byId[h.host_id];
     const face = el("div", { class: "deck__face" }, [
-      photo(h.photo_url, `Photo for ${h.title}`),
+      photo(h.photo_url, `Photo for ${h.title}`, "deck__photo", h.id),
       el("div", { class: "deck__scrim" }, [
         el("span", { class: "deck__name", text: h.title }),
         el("span", { class: "deck__line", html: `${icon("pin", { size: 15 })}<span>${h.location_name || h.region} · ${fmtShortDate(h.proposed_date)}</span>` }),

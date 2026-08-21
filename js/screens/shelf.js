@@ -60,7 +60,10 @@ export async function shelf({ id }) {
 
   if (section === "photos") {
     const shots = [
-      ...[...myHikeIds].map((hid) => ({ url: (hikeById[hid] || {}).photo_url, alt: (hikeById[hid] || {}).title || "" })),
+      ...[...myHikeIds].map((hid) => ({
+        url: (hikeById[hid] || {}).photo_url || landscape(hid),
+        alt: (hikeById[hid] || {}).title || "",
+      })),
       ...scans.map((s) => ({ url: s.image_url, alt: s.label || "Scan" })),
     ].filter((s) => s.url);
 

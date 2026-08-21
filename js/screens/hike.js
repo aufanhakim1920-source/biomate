@@ -46,7 +46,7 @@ export async function hike({ id }) {
 
   /* hero */
   const hero = el("div", { class: "hero" }, [
-    photo(h.photo_url, `Photo for ${h.title}`, "hero__img"),
+    photo(h.photo_url, `Photo for ${h.title}`, "hero__img", h.id),
     el("button", {
       class: "hero__save", type: "button", "aria-pressed": "false",
       "aria-label": "Save this hike", html: icon("bookmark", { size: 18 }),
