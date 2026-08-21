@@ -42,8 +42,12 @@ features.
 | Photoscan? | **Real identification**, via a Supabase Edge Function so the key never reaches the browser. Becomes the product's one honest AI claim. |
 | Phone or desktop? | **Phone.** Figma frames are 402×874 (iPhone 16/17 Pro). |
 
-Still open: whether the trail recorder uses real GPS, whether gender is a filter
-or a safety feature, and the deadline.
+Still open: whether the trail recorder uses real GPS, and the deadline.
+
+**Gender/pronouns, partly answered 2026-08-22:** onboarding step 4/5 asks *"What
+are your pronouns?"* with a dropdown — pronouns, not gender. That reads as
+identity/display rather than a hard filter. Still worth confirming whether
+anyone can filter *on* it or whether it is only shown.
 
 ## New, from the brief
 

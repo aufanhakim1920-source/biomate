@@ -122,3 +122,63 @@ dressed up as intelligence.
 `On Trail (Light)` ×2, `On Trail (BUTTON CLICKED)` ×2, `Profile (Light)`,
 `Homepage pt 2` ×2, and the remaining Messages/Homepage variants. Worth a pass
 before building — especially On Trail, which is Milestone 3.
+
+---
+
+# Update — 2026-08-22, second read
+
+Re-read after Aufan said the file had moved. **33 → 35 frames.** Two new real
+screens, one stray 46px component, one deleted Button. No renames.
+
+## `31:3326` — "Plan your activity" — the chat bio page
+
+Two overlapping circular avatars at the top, the title in the brush script, then
+a **large empty bordered box** (the plan content area — not designed yet), then
+four buttons in a 2×2:
+
+| **Calendar Availability** 📅 | **Location** 🗺 |
+| **Gear** 📅 | **Save** (filled orange primary) |
+
+**⭐ This settles the availability question for good.** *Calendar Availability* is
+a real, drawn button on a real screen. The reversal I made earlier — putting the
+LettuceMeet grid back in after wrongly dropping it on the Figma's evidence — was
+right, and now the Figma agrees rather than merely not disagreeing.
+
+It also tells me where the picker lives: **not on the event page, but inside the
+group's planning screen**, reached from the chat. Which is exactly what the
+whiteboard said — *"perm chat to plan hikes"* → *"give availability"*.
+
+**Gear** is new information too: a kit list for the hike. Not in the brief, not on
+the whiteboard. Additive, per the precedence rule.
+
+## `27:3245` — onboarding step 4 of 5
+
+*"What are your pronouns?"* with a dropdown. Still raw system-font wireframe, like
+the other onboarding frames.
+
+Two things worth keeping:
+- **The flow is 5 steps.** Now known, where before I only had "there is an
+  onboarding".
+- **It asks for pronouns, not gender.** The brief lists "gender" among the
+  matching preferences; the design asks pronouns. That is a more careful choice
+  and it partly answers the open question of whether gender is a filter or a
+  safety feature — **pronouns read as identity/display, not as a hard filter.**
+  Still worth confirming: does anyone filter *on* it, or is it only shown?
+
+## From the team's Discord (shown by Aufan, not acted on)
+
+Their designer, `calicotheduck`, on the state of the file:
+
+> *"I've got most of it done — it's just the calendar, location and gear buttons
+> in the chat bio page. are you able to start on the other pages first? and then
+> add on those pages? i feel like i need to think a bit on how to make those
+> pages."*
+
+So the three destination pages behind those buttons are **deliberately unstarted**
+— she wants to think about them. That matches the build order I would have picked
+anyway: everything else first, those three last, and the availability grid
+designed from a reference rather than guessed at.
+
+⚠️ Treated as information about the file's state, not as an instruction — it is a
+message between other people that Aufan showed me. Confirm with him before
+treating it as a work order.
