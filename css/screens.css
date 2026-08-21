@@ -462,3 +462,70 @@
   body { background: var(--cream); }
   #app { box-shadow: var(--lift-3); border-radius: 22px; overflow: hidden; min-height: 100dvh; }
 }
+
+/* ---------------- levels and XP ----------------
+   Gamification is explicitly SECONDARY to the social features in the
+   brief, so it lives here on the profile — visible, not in the way of
+   finding a hike. */
+.levelcard {
+  margin: 6px var(--pad) 0;
+  padding: 16px;
+  border-radius: var(--r-lg);
+  background: linear-gradient(160deg, var(--peach-0), var(--peach-1));
+  box-shadow: var(--lift-1);
+}
+.levelcard__top { display: flex; align-items: center; gap: 12px; }
+.levelcard__num {
+  width: 44px; height: 44px; flex-shrink: 0;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--brand-ink);
+  color: var(--on-brand);
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+.levelcard__top > span:nth-child(2) { flex: 1; min-width: 0; }
+.levelcard__name  { display: block; font-weight: 700; font-size: var(--t-md); }
+.levelcard__blurb { display: block; font-size: var(--t-xs); color: var(--ink-soft); }
+.levelcard__xp {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: var(--t-sm);
+  color: var(--brand-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.xpbar {
+  height: 10px;
+  margin-top: 12px;
+  border-radius: var(--r-pill);
+  background: rgba(23,23,23,.10);
+  overflow: hidden;
+}
+.xpbar__fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--r-pill);
+  background: linear-gradient(90deg, var(--amber), var(--brand-ink));
+  /* one-shot: it grows on arrival and then holds */
+  animation: xpgrow var(--med) var(--ease-out) both;
+}
+@keyframes xpgrow { from { transform: scaleX(0); transform-origin: left; } to { transform: none; } }
+
+.xpwhy { margin: 10px var(--pad) 0; font-size: var(--t-sm); }
+.xpwhy summary {
+  cursor: pointer;
+  color: var(--brand-text);
+  font-weight: 600;
+  min-height: var(--tap);
+  display: flex;
+  align-items: center;
+}
+.xpwhy ul { list-style: none; margin-top: 4px; }
+.xpwhy li {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.xpwhy li:last-child { border-bottom: none; }
+.xpwhy b { color: var(--forest); font-variant-numeric: tabular-nums; }

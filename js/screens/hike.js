@@ -59,6 +59,10 @@ export async function hike({ id }) {
     }),
   ]);
   wrap.append(hero);
+  /* CC BY-SA images require attribution, and it costs one line */
+  if (h.photo_credit) {
+    wrap.append(el("p", { class: "tiny", style: "padding:6px 20px 0", text: `Photo: ${h.photo_credit}` }));
+  }
 
   /* details */
   const detail = (ic, text, extra) =>

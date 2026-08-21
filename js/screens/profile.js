@@ -20,6 +20,9 @@ import { icon } from "../icons.js";
 import { setAudio, setTheme } from "../a11y.js";
 import { get } from "../store.js";
 import { go, back } from "../router.js";
+import { levelFor, breakdown, TERRAIN_XP, LEVELS } from "../levels.js";
+
+const LEVEL_NEXT_NAME = (lv) => (LEVELS[lv.level] || {}).name || "the next level";
 
 const BOOKS = [
   { key: "photos",  title: "Photos",  hue: "var(--brand)",     h: 172, w: 40 },
@@ -31,12 +34,15 @@ const BOOKS = [
 
 export async function profile() {
   const meId = DB.uid();
-  const [me, members, hikes, logs, profiles] = await Promise.all([
+  const [me, members, hikes, logs, profiles, stats, msgs, scans] = await Promise.all([
     DB.me(),
     DB.list("hike_members"),
     DB.list("hikes"),
     DB.list("trail_logs", { filter: { user_id: meId } }),
     DB.list("profiles"),
+    DB.list("player_stats", { filter: { id: meId }, limit: 1 }),
+    DB.list("messages", { filter: { user_id: meId } }),
+    DB.list("scans", { filter: { user_id: meId } }),
   ]);
 
   const byId = Object.fromEntries(profiles.map((p) => [p.id, p]));
@@ -54,6 +60,20 @@ export async function profile() {
   const totalM = logs.reduce((a, l) => a + (l.distance_m || 0), 0);
   const totalS = logs.reduce((a, l) => a + (l.duration_s || 0), 0);
 
+  /* the database's number is the score; the client only explains it */
+  const xp = (stats[0] && stats[0].xp) || 0;
+  const lv = levelFor(xp);
+  const myMemberRows = members.filter((m) => m.user_id === meId && m.status !== "left");
+  const hosted = hikes.filter((h) => h.host_id === meId).length;
+  const terrain = myMemberRows.reduce((a, m) => {
+    const h = hikes.find((x) => x.id === m.hike_id);
+    return a + (h ? (TERRAIN_XP[h.difficulty] || 0) : 0);
+  }, 0);
+  const rows = breakdown({
+    joined: myMemberRows.length, hosted, terrain,
+    messages: msgs.length, metres: totalM, scans: scans.length,
+  });
+
   const wrap = el("div");
 
   wrap.append(
@@ -62,6 +82,49 @@ export async function profile() {
       el("h1", { class: "display", style: "font-size:1.5rem", text: (me && me.display_name) || "You" }),
     ])
   );
+
+  /* ---- level ---- */
+  wrap.append(
+    el("section", { class: "levelcard" }, [
+      el("div", { class: "levelcard__top" }, [
+        el("span", { class: "levelcard__num", "aria-hidden": "true", text: String(lv.level) }),
+        el("span", {}, [
+          el("span", { class: "levelcard__name", text: lv.name }),
+          el("span", { class: "levelcard__blurb", text: lv.blurb }),
+        ]),
+        el("span", { class: "levelcard__xp", text: `${xp} XP` }),
+      ]),
+      el("div", {
+        class: "xpbar",
+        role: "progressbar",
+        "aria-valuemin": "0",
+        "aria-valuemax": "100",
+        "aria-valuenow": String(lv.pct),
+        "aria-label": lv.next
+          ? `Level ${lv.level}, ${lv.name}. ${xp} XP. ${lv.next - xp} XP to the next level.`
+          : `Level ${lv.level}, ${lv.name}. Highest level reached.`,
+      }, [el("span", { class: "xpbar__fill", style: `width:${lv.pct}%` })]),
+      el("p", { class: "tiny", style: "margin-top:8px",
+        text: lv.next ? `${lv.next - xp} XP to ${LEVEL_NEXT_NAME(lv)}` : "Top level — nothing left to climb." }),
+    ])
+  );
+
+  if (rows.length) {
+    wrap.append(
+      el("details", { class: "xpwhy" }, [
+        el("summary", { text: "Where these points came from" }),
+        el("ul", {}, rows.map((r) =>
+          el("li", {}, [
+            el("span", {}, [
+              el("span", { class: "row__title", text: r.label }),
+              el("span", { class: "row__sub", text: r.detail }),
+            ]),
+            el("b", { text: `+${r.xp}` }),
+          ])
+        )),
+      ])
+    );
+  }
 
   /* ---- headline stats ---- */
   wrap.append(
