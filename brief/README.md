@@ -29,10 +29,13 @@ The five things that change what I build, in rough priority:
 4. **What's assessed / what the team promised** — the rubric, the pitch, the
    marking criteria if there is one. This decides what has to be real versus
    what can be a stub.
-5. **Deadline**, and who on the team is building which part.
+5. **Deadline**, and anything the team has already promised or committed to.
 
-Also worth dropping if it exists: the assignment sheet, your group's plan
-doc, and anything the team has already decided and doesn't want relitigated.
+Also worth dropping if it exists: the assignment sheet, your group's plan doc,
+and anything the team has already decided and doesn't want relitigated.
+
+(The repo is a solo build — you and me — but the *decisions* are still the
+group's, so anything they've settled is worth having here.)
 
 ## mocks/ — what it should look like
 

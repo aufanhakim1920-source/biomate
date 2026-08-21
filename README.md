@@ -39,9 +39,9 @@ point it at the real database.
 | | | Why |
 |---|---|---|
 | **Identity** | Supabase **anonymous auth** | Peak & Pan proved ownership with an `x-device-id` header the client sets itself — spam-resistant, not tamper-proof. A real `auth.uid()` out of a signed JWT fixes it, with no signup screen, and upgrades to email/Google later on the same uid so nothing has to be migrated. |
-| **Stack** | Vanilla HTML/CSS/JS, **no build step** | Teammates clone and run — no npm install. Every design reference the team works from is plain HTML/CSS, so it ports across 1:1 instead of needing translation into components. |
-| **Team workflow** | branch per page | One person per file means no merge conflicts on a deadline. Set up once the screens exist. |
-| **Hosting** | GitHub now → **Netlify at presentation time** | Netlify gives the live link for the room. |
+| **Stack** | Vanilla HTML/CSS/JS + **ES modules**, no bundler, zero npm dependencies | Every design reference in the library is plain HTML/CSS, so it ports across 1:1 instead of being translated into components. A static folder deploys to Netlify with no build config and cannot fail a build at 2am. ES modules (rather than ordered `<script>` tags) because Peak & Pan lost real time to load-order bugs that explicit imports make impossible. |
+| **Solo build** | work on `main` | Aufan and Claude only — no teammates in the repo, so branch-per-screen was dropped as pure overhead. Branch only for something genuinely risky. |
+| **Hosting** | GitHub now → **Netlify at presentation time** | Netlify gives the live link for the room. Static folder, zero build config. |
 
 ## Backend, in one paragraph
 

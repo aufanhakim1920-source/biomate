@@ -51,14 +51,9 @@ features.
 
 3. **Phone or desktop?** Peak & Pan was phone-width and every layout decision
    followed from that. If the mocks are wide I'll assume desktop-first.
-4. **Who's on the team, and their GitHub usernames?** So I can add them as
-   collaborators in the same step as creating the repo.
-5. **Repo public or private?** Peak & Pan went public for the hackathon so
+4. **Repo public or private?** Peak & Pan went public for the hackathon so
    links could be sent. Private is the safer default and flips in one command.
-6. **Does the data need to be shared between users, or is per-user enough?**
-   This is the single biggest fork in the schema. "Everyone sees everyone's
-   posts" and "everyone has their own private list" are different databases.
-7. **Anything with real money in it?** If so it's a separate conversation —
+5. **Anything with real money in it?** If so it's a separate conversation —
    Peak & Pan's paywall deliberately contacts no payment provider and says so
    on screen, and I'd want to do the same here rather than fake it quietly.
 
