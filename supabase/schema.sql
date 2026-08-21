@@ -1,5 +1,5 @@
 -- ============================================================
--- __PROJECT_TITLE__ — Supabase schema
+-- Biomate — Supabase schema
 -- Run in the SQL editor of a fresh project (or via apply_migration).
 --
 -- Identity is REAL this time. Peak & Pan keyed its RLS on an

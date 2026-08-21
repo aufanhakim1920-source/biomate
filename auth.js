@@ -1,5 +1,5 @@
 /* ============================================================
-   __PROJECT_TITLE__ — anonymous auth, no SDK
+   Biomate — anonymous auth, no SDK
 
    Why hand-rolled instead of supabase-js: supabase-js ships as an
    ES module, and a browser refuses to `import` from a file:// page.
@@ -21,7 +21,7 @@
 
 window.Auth = (function () {
   const CFG = window.PP_CONFIG || {};
-  const KEY = "__PROJECT_SLUG__/session";
+  const KEY = "biomate/session";
 
   /* Boolean(), not the && chain — `a && url && key` returns the KEY
      as its last truthy operand, so anything logging this would print

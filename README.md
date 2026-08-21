@@ -1,11 +1,11 @@
-# team-rocket-project *(placeholder name)*
+# Biomate
 
-Second team build with the same university group that made **Peak & Pan** —
-new theme, new project type. The brief hasn't landed yet.
+A web app by the **team rocket** university group — the same team that built
+[Peak & Pan](https://github.com/aufanhakim1920-source/peak-and-pan). New theme,
+new project type.
 
-> ⚠️ **The folder name is a placeholder.** It gets renamed to the real
-> project name before anything is pushed, so nothing bakes the wrong name
-> into a repo URL, a Supabase project, or a launcher entry.
+> The brief hasn't landed yet. The backend half that doesn't depend on the
+> subject matter is built; the frontend starts when the design does.
 
 ## Where things go
 
@@ -22,34 +22,59 @@ config.js       committed, ships EMPTY
 config.local.js gitignored, holds the real keys (copy the .example)
 ```
 
-## Decisions already made
+## Running it
+
+No install, no build step. Serve the folder over http and open it:
+
+```bash
+npx serve C:\Coding\biomate
+```
+
+It works with **no keys at all** — everything runs out of localStorage on the
+local driver. Fill in `config.local.js` (copy `config.local.example.js`) to
+point it at the real database.
+
+## Decisions
 
 | | | Why |
 |---|---|---|
-| **Identity** | Supabase **anonymous auth** | Peak & Pan proved ownership with an `x-device-id` header the client sets itself — spam-resistant, not tamper-proof. Real `auth.uid()` from a signed JWT fixes it, with no signup screen, and upgrades to email/Google later without a data migration. |
-| **Stack** | Vanilla HTML/CSS/JS, **no build step** | Teammates clone and run — no npm install. Every reference in the library is plain HTML/CSS, so they port across 1:1 instead of needing translation. |
+| **Identity** | Supabase **anonymous auth** | Peak & Pan proved ownership with an `x-device-id` header the client sets itself — spam-resistant, not tamper-proof. A real `auth.uid()` out of a signed JWT fixes it, with no signup screen, and upgrades to email/Google later on the same uid so nothing has to be migrated. |
+| **Stack** | Vanilla HTML/CSS/JS, **no build step** | Teammates clone and run — no npm install. Every design reference the team works from is plain HTML/CSS, so it ports across 1:1 instead of needing translation into components. |
 | **Team workflow** | branch per page | One person per file means no merge conflicts on a deadline. Set up once the screens exist. |
 | **Hosting** | GitHub now → **Netlify at presentation time** | Netlify gives the live link for the room. |
 
 ## Backend, in one paragraph
 
-Everything runs on the **local driver** out of the box: clone, open, and the
-whole app works out of localStorage with no keys and no network. Filling in
-`config.local.js` flips the same interface onto real Postgres. That is not a
-fallback nicety — it is what keeps a demo alive when the wifi dies, and what
-lets the public link work while the database stays private.
+Everything runs on the **local driver** out of the box, so a clone works with
+no keys and no network. Filling in `config.local.js` flips the same interface
+onto real Postgres without a screen file changing. That's not a fallback
+nicety — it's what keeps a demo alive when the wifi dies, and what lets a
+public link work while the database stays private.
 
 Writes are guarded: if the live database fails, the call falls back to local
 **and raises `DB.degraded`**. A fallback that hides failure makes an app look
 perfectly healthy while writing nothing to the server — that exact bug cost a
 session on Peak & Pan.
 
-## Not done yet
+## Keys
 
-- Supabase project **not provisioned** — needs the real name
-- GitHub repo **not created** — needs the real name
-- `schema.sql` has auth, profiles, the media index and storage; **domain
-  tables come with the brief**
-- Anonymous sign-ins must be switched **ON** in the dashboard by hand —
-  Authentication → Sign In / Providers. It is not scriptable, and nothing
-  auth-related works until it is on.
+`config.js` is committed and **ships empty**. Real values go in
+`config.local.js`, which is gitignored.
+
+The **publishable/anon key belongs in a browser** — it identifies the project
+and grants nothing on its own; RLS plus `auth.uid()` is what protects the data.
+The **`service_role` key must never be in any file**: it bypasses RLS entirely
+and is only ever read from an environment variable by a server-side script.
+
+Anything committed to a repo is recoverable from history forever. A leaked key
+gets **rotated**, not reverted.
+
+## Status
+
+- ✅ Supabase project `biomate` — Sydney, free tier
+- ✅ `schema.sql` applied: profiles, media index, storage buckets, RLS
+- ⬜ **Anonymous sign-ins must be switched ON by hand** — Supabase dashboard →
+  Authentication → Sign In / Providers → Anonymous sign-ins. There is no API
+  for it, and nothing auth-related works until it's on.
+- ⬜ Domain tables — come with the brief
+- ⬜ Frontend — starts on `gas`

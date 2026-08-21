@@ -1,5 +1,5 @@
 /* ============================================================
-   __PROJECT_TITLE__ — runtime config (COMMITTED, ships empty)
+   Biomate — runtime config (COMMITTED, ships empty)
 
    The app runs entirely on the local driver until this is filled
    in, so a teammate can clone and run with no keys at all.
