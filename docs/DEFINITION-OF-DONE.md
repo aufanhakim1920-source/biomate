@@ -63,8 +63,9 @@ say so if asked.
       turn. Mirror from `git ls-files` so gitignored keys can never be copied in.
       ⚠️ Run git with `-C <repo>` — a mirror loop run from the wrong directory
       once copied 11 unrelated files into this project's mirror.
-- [ ] **Every real bug becomes a lesson.** `Claude Second Brain/Biomate/Biomate
-      Dev Patterns.md` — Bug (symptom + root cause) → Fix → Rule. Created on the
+- [ ] **Every real bug becomes a lesson.** `Claude Second Brain/Coding Claude/Biomate
+      Dev Patterns.md` (same folder as the project note — this project does NOT
+      get its own vault folder) — Bug (symptom + root cause) → Fix → Rule. Created on the
       first real bug, not before; an empty note is worse than none. If the bug
       reveals a reusable technique, also write a standalone note in
       `Claude Second Brain/Patterns/` with explicit trigger keywords.
