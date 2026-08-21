@@ -157,7 +157,7 @@ function photoGrid(shots) {
         type: "button",
         "aria-label": s.alt || `Photo ${i + 1}`,
         onclick: () => say(s.alt || "Photo"),
-      }, [el("img", { src: s.url, alt: "", loading: "lazy" })])
+      }, [el("img", { src: s.url, alt: "", loading: s.url.startsWith("data:") ? "eager" : "lazy" })])
     )
   );
 

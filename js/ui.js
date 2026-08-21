@@ -104,7 +104,18 @@ export function photo(url, alt, cls = "deck__photo", seed = "") {
      from the hike's own id, so it is stable and different per hike. */
   if (!url && seed) url = landscape(seed);
   if (!url) return el("div", { class: "deck__placeholder", role: "img", "aria-label": alt || "No photo yet" });
-  const img = el("img", { class: cls, src: url, alt: alt || "", loading: "lazy", decoding: "async" });
+  /* ⚠️ NEVER lazy-load a data: URI. There is no network request to
+     defer, so it buys nothing — and inside the absolutely-positioned
+     deck (which sits in a `perspective` container) Chrome's
+     intersection check never fires, leaving every card stuck at
+     complete:false with a 0x0 natural size and a blank card. Only a
+     real URL is worth deferring. */
+  const isData = url.startsWith("data:");
+  const img = el("img", {
+    class: cls, src: url, alt: alt || "",
+    loading: isData ? "eager" : "lazy",
+    decoding: isData ? "sync" : "async",
+  });
   img.addEventListener("error", () => {
     img.replaceWith(el("div", { class: "deck__placeholder", role: "img", "aria-label": alt || "Photo unavailable" }));
   });
@@ -119,7 +130,7 @@ export function tint(seed = "") {
 }
 
 export function avatar(url, name, cls = "avatar") {
-  if (url) return el("img", { class: cls, src: url, alt: "" , loading: "lazy" });
+  if (url) return el("img", { class: cls, src: url, alt: "", loading: url.startsWith("data:") ? "eager" : "lazy" });
   const initials = (name || "?").trim().slice(0, 1).toUpperCase();
   return el("div", {
     class: cls,
