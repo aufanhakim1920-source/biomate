@@ -15,6 +15,8 @@ import { icon } from "../icons.js";
 import { levelFor } from "../levels.js";
 import { say } from "../a11y.js";
 import { go, back } from "../router.js";
+import { gallery } from "../gallery.js";
+import { landscape } from "../art.js";
 
 const EXPERIENCE_LABEL = {
   beginner: "New to this",
@@ -110,6 +112,23 @@ export async function person({ id }) {
 
   if (totalS) {
     wrap.append(el("p", { class: "tiny", style: "padding:2px 20px 0", text: `${fmtDuration(totalS)} on foot across ${logs.length} logged trail${logs.length === 1 ? "" : "s"}.` }));
+  }
+
+  /* ---- their gallery, behind the lens ----
+     You can see that they have photos and roughly what of; bringing
+     one into focus takes a deliberate move. That is the difference
+     between browsing someone and glancing at them. */
+  const theirShots = [...theirs]
+    .map((hid) => hikes.find((x) => x.id === hid))
+    .filter(Boolean)
+    .map((x) => ({ url: x.photo_url || landscape(x.id), alt: `${x.title} — ${x.location_name || x.region}` }));
+
+  if (theirShots.length) {
+    while (theirShots.length < 6) {
+      theirShots.push({ url: landscape(`${id}-${theirShots.length}`), alt: "A walk they have not logged yet" });
+    }
+    wrap.append(el("h2", { class: "sectionhead", text: `${p.display_name}'s gallery` }));
+    wrap.append(gallery(theirShots, { lens: true, onOpen: (sh) => say(sh.alt) }));
   }
 
   /* ---- what they're hosting, so you can actually go with them ---- */

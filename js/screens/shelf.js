@@ -30,6 +30,7 @@ import { el, avatar, fmtDistance, fmtShortDate, toast } from "../ui.js";
 import { icon } from "../icons.js";
 import { say, reducedMotion } from "../a11y.js";
 import { landscape } from "../art.js";
+import { gallery } from "../gallery.js";
 import { go, back } from "../router.js";
 import { personBadge } from "../appbar.js";
 import { catalogue, TIERS, MAX_SHOWCASE } from "../badges.js";
@@ -75,7 +76,10 @@ export async function shelf({ id }) {
     /* pad so the grid always has something to reveal */
     while (shots.length < 9) shots.push({ url: landscape("filler" + shots.length), alt: "A walk you haven't logged yet" });
 
-    wrap.append(photoGrid(shots));
+    /* No lens on your OWN gallery. The circle is for peeking at
+       someone else's photos; over your own it is just friction. */
+    wrap.append(el("p", { class: "meta", style: "padding:0 20px 10px", text: "Everywhere you have been." }));
+    wrap.append(gallery(shots, { lens: false }));
     return wrap;
   }
 
@@ -210,90 +214,4 @@ function empty(title, body, onAct, actLabel) {
     el("p", { class: "meta", text: body }),
     onAct ? el("button", { class: "btn btn--primary", style: "margin-top:14px", type: "button", text: actLabel, onclick: onAct }) : null,
   ]);
-}
-
-/* ---------------- the photo grid + lens ---------------- */
-function photoGrid(shots) {
-  const holder = el("div", { class: "lenswrap" });
-
-  const grid = el("div", { class: "pgrid" },
-    shots.map((s, i) =>
-      el("button", {
-        class: "pgrid__cell",
-        type: "button",
-        "aria-label": s.alt || `Photo ${i + 1}`,
-        onclick: () => say(s.alt || "Photo"),
-      }, [el("img", { src: s.url, alt: "", loading: s.url.startsWith("data:") ? "eager" : "lazy" })])
-    )
-  );
-
-  /* the veil: one blur over the whole grid with a hole punched at
-     --lx/--ly. Scales to any number of photos, unlike the two-copies
-     trick which only works for a single image. */
-  const veil = el("div", { class: "lens__veil", "aria-hidden": "true" });
-  const rim = el("div", {
-    class: "lens__rim",
-    role: "slider",
-    tabindex: "0",
-    "aria-label": "Focus lens. Drag it, or use the arrow keys, to bring photos into focus.",
-    "aria-valuetext": "centre",
-  });
-
-  holder.append(grid, veil, rim);
-
-  let lx = 50, ly = 44;          /* percent — above centre, out of thumb range */
-  let lift = 0;
-
-  const place = () => {
-    holder.style.setProperty("--lx", lx + "%");
-    holder.style.setProperty("--ly", `calc(${ly}% - ${lift}px)`);
-    rim.style.left = lx + "%";
-    rim.style.top = `calc(${ly}% - ${lift}px)`;
-  };
-
-  const fromEvent = (e) => {
-    const r = holder.getBoundingClientRect();
-    lx = Math.max(6, Math.min(94, ((e.clientX - r.left) / r.width) * 100));
-    ly = Math.max(8, Math.min(92, ((e.clientY - r.top) / r.height) * 100));
-    place();
-  };
-
-  let dragging = false;
-  rim.addEventListener("pointerdown", (e) => {
-    dragging = true;
-    rim.setPointerCapture(e.pointerId);
-    rim.dataset.held = "1";
-    /* lift only for touch — a mouse cursor is a point and occludes
-       nothing, so shifting the lens away from it would just feel wrong */
-    lift = e.pointerType === "touch" ? 72 : 0;
-    place();
-  });
-  rim.addEventListener("pointermove", (e) => { if (dragging) fromEvent(e); });
-  const drop = () => {
-    if (!dragging) return;
-    dragging = false;
-    rim.dataset.held = "0";
-    lift = 0;
-    place();
-    rim.setAttribute("aria-valuetext", `${Math.round(lx)} percent across, ${Math.round(ly)} percent down`);
-  };
-  rim.addEventListener("pointerup", drop);
-  rim.addEventListener("pointercancel", drop);
-
-  rim.addEventListener("keydown", (e) => {
-    const step = e.shiftKey ? 12 : 5;
-    if (e.key === "ArrowLeft") lx = Math.max(6, lx - step);
-    else if (e.key === "ArrowRight") lx = Math.min(94, lx + step);
-    else if (e.key === "ArrowUp") ly = Math.max(8, ly - step);
-    else if (e.key === "ArrowDown") ly = Math.min(92, ly + step);
-    else return;
-    e.preventDefault();
-    place();
-  });
-
-  if (reducedMotion()) rim.style.transition = "none";
-  place();
-
-  const note = el("p", { class: "tiny", style: "padding:10px 20px 0", text: "Drag the circle to bring photos into focus. Arrow keys work too." });
-  return el("div", {}, [holder, note]);
 }
