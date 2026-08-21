@@ -175,6 +175,21 @@
 .deck__card[data-depth="2"] { transform: translateY(32px) scale(.91)  rotate(1.4deg); }
 .deck__card[data-depth="3"] { opacity: 0; pointer-events: none; }
 
+/* The back cards were showing the DARK bottom of their own artwork, so
+   the stack read as a black ledge under the top card rather than as
+   paper behind paper. Veil them toward the surface colour — they only
+   need to say "there are more", not to be legible. */
+.deck__card[data-depth="1"] .deck__face::after,
+.deck__card[data-depth="2"] .deck__face::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--surface);
+  pointer-events: none;
+}
+.deck__card[data-depth="1"] .deck__face::after { opacity: .58; }
+.deck__card[data-depth="2"] .deck__face::after { opacity: .78; }
+
 .deck__face {
   position: absolute;
   inset: 0;
