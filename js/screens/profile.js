@@ -21,6 +21,7 @@ import { setAudio, setTheme } from "../a11y.js";
 import { get } from "../store.js";
 import { go, back } from "../router.js";
 import { levelFor, breakdown, TERRAIN_XP, LEVELS } from "../levels.js";
+import { catalogue, showcase, TIERS } from "../badges.js";
 
 const LEVEL_NEXT_NAME = (lv) => (LEVELS[lv.level] || {}).name || "the next level";
 
@@ -79,9 +80,49 @@ export async function profile() {
   wrap.append(
     el("div", { class: "topbar topbar--left" }, [
       el("button", { class: "iconbtn iconbtn--ring", type: "button", "aria-label": "Back", html: icon("back", { size: 20 }), onclick: back }),
-      el("h1", { class: "display", style: "font-size:1.5rem", text: (me && me.display_name) || "You" }),
+      el("h1", { class: "display", style: "flex:1;font-size:1.5rem", text: (me && me.display_name) || "You" }),
+      el("button", { class: "btn btn--ghost", style: "padding:8px 16px;font-size:var(--t-sm)", type: "button", text: "Edit", onclick: () => go("settings") }),
     ])
   );
+
+  /* ---- your own profile card, so it reads like a person's page ---- */
+  wrap.append(
+    el("section", { class: "personhead" }, [
+      avatar(me && me.avatar_url, (me && me.display_name) || "You", "avatar avatar--xl"),
+      el("div", { class: "personhead__body" }, [
+        el("span", { class: "personhead__name", text: (me && me.display_name) || "You" }),
+        me && me.pronouns ? el("span", { class: "tiny", text: me.pronouns }) : null,
+        me && me.home_area ? el("span", { class: "tiny", text: me.home_area }) : null,
+        me && me.bio ? el("span", { class: "meta", style: "margin-top:6px", text: me.bio }) : null,
+      ]),
+    ])
+  );
+
+  /* ---- the three badges you chose to show off ---- */
+  const facts = {
+    joined: myHikeIds.size,
+    hosted,
+    logs: logs.length,
+    metres: totalM,
+    messages: msgs.length,
+    scans: scans.length,
+    states: new Set([...myHikeIds].map((id) => (hikes.find((h) => h.id === id) || {}).region).filter(Boolean)).size,
+    hardDone: [...myHikeIds].filter((id) => (hikes.find((h) => h.id === id) || {}).difficulty === "hard").length,
+    streak: (stats[0] && stats[0].streak) || 0,
+    people: walkedWith.size,
+  };
+  const shown = showcase(catalogue(facts), (me && me.badges) || []);
+  if (shown.length) {
+    wrap.append(
+      el("div", { class: "showcase" },
+        shown.map((b) => el("span", { class: "showcase__b", "data-tier": b.tier,
+          "aria-label": `${b.name}, ${TIERS[b.tier].label} badge` }, [
+          el("span", { html: icon(b.icon, { size: 14 }), "aria-hidden": "true" }),
+          el("span", { text: b.name }),
+        ]))
+      )
+    );
+  }
 
   /* ---- level ---- */
   wrap.append(

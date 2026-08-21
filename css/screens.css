@@ -479,7 +479,7 @@
     min-height: 100dvh;
   }
 
-  #status { grid-column: 2; }
+  .appbar { grid-column: 2; top: 0; }
 
   #screen {
     grid-column: 2;
@@ -629,3 +629,219 @@
 }
 .xpwhy li:last-child { border-bottom: none; }
 .xpwhy b { color: var(--forest); font-variant-numeric: tabular-nums; }
+
+/* ---------------- collection + missions ---------------- */
+.ausmap__pin.is-visited {
+  background: var(--forest);
+  box-shadow: var(--lift-1), 0 0 0 3px color-mix(in srgb, var(--forest) 22%, transparent);
+}
+.ausmap__tick { display: inline-grid; place-items: center; margin-right: 4px; }
+/* a state you haven't walked reads as an outline waiting to be claimed */
+.ausmap__pin:not(.is-visited) {
+  background: color-mix(in srgb, var(--brand-ink) 82%, transparent);
+}
+
+.collect {
+  text-align: center;
+  font-size: var(--t-sm);
+  color: var(--ink-soft);
+  padding: 8px var(--pad) 0;
+}
+.collect b { color: var(--forest); font-weight: 800; }
+
+.missions {
+  margin: 16px var(--pad) 0;
+  padding: 14px 16px;
+  border-radius: var(--r-lg);
+  background: linear-gradient(160deg, var(--peach-0), var(--peach-1));
+  box-shadow: var(--lift-1);
+}
+.missions__head { display: flex; align-items: center; justify-content: space-between; }
+.missions__count {
+  font-size: var(--t-xs);
+  font-weight: 800;
+  color: var(--brand-text);
+  background: var(--surface);
+  border-radius: var(--r-pill);
+  padding: 3px 10px;
+}
+.missions ul { list-style: none; margin-top: 10px; display: flex; flex-direction: column; gap: 10px; }
+
+.mission { display: flex; align-items: center; gap: 12px; }
+.mission__ic {
+  width: 32px; height: 32px; flex-shrink: 0;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--brand-ink);
+  box-shadow: var(--lift-1);
+}
+.mission__body { flex: 1; min-width: 0; }
+.mission__name { display: block; font-size: var(--t-sm); font-weight: 600; }
+.mission__bar {
+  display: block;
+  height: 5px;
+  margin-top: 5px;
+  border-radius: var(--r-pill);
+  background: rgba(23,23,23,.10);
+  overflow: hidden;
+}
+.mission__bar > span {
+  display: block; height: 100%;
+  border-radius: var(--r-pill);
+  background: linear-gradient(90deg, var(--amber), var(--brand-ink));
+}
+.mission__xp { font-size: var(--t-xs); font-weight: 800; color: var(--brand-text); flex-shrink: 0; }
+.mission.is-done .mission__ic { background: var(--forest); color: #fff; }
+.mission.is-done .mission__name { color: var(--ink-faint); text-decoration: line-through; text-decoration-color: var(--forest); }
+.mission.is-done .mission__xp { color: var(--forest); }
+
+/* ---------------- celebration effects ---------------- */
+.fx-xp {
+  position: fixed;
+  z-index: 300;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  padding: 6px 12px;
+  border-radius: var(--r-pill);
+  background: var(--forest);
+  color: #fff;
+  font-size: var(--t-sm);
+  font-weight: 800;
+  box-shadow: var(--lift-2);
+  animation: fxfly 1.2s var(--ease-out) forwards;
+}
+@keyframes fxfly {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(.7); }
+  18%  { opacity: 1; transform: translate(-50%, -50%) scale(1.06); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(.55); }
+}
+
+.chipstat--level.is-bumped { animation: fxbump .45s var(--ease-spring); }
+@keyframes fxbump { 0%,100% { transform: none; } 40% { transform: scale(1.14); } }
+
+.fx-level {
+  position: fixed;
+  left: 50%; top: 34%;
+  transform: translate(-50%, -50%);
+  z-index: 300;
+  pointer-events: none;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 22px 38px;
+  border-radius: var(--r-xl);
+  background: linear-gradient(150deg, var(--brand-ink), var(--brand-text));
+  color: #fff;
+  box-shadow: var(--lift-3);
+  animation: fxpop 2.4s var(--ease-out) forwards;
+}
+.fx-level__lv { font-weight: 900; letter-spacing: .16em; font-size: var(--t-sm); opacity: .85; }
+.fx-level__name { font-family: var(--font-display); font-style: italic; font-weight: 900; font-size: 1.7rem; }
+@keyframes fxpop {
+  0%   { opacity: 0; transform: translate(-50%,-50%) scale(.8); }
+  12%  { opacity: 1; transform: translate(-50%,-50%) scale(1.03); }
+  22%  { transform: translate(-50%,-50%) scale(1); }
+  82%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%,-56%) scale(.98); }
+}
+
+.fx-badge {
+  position: fixed;
+  left: 50%; bottom: calc(var(--nav-h) + var(--safe-b) + 30px);
+  transform: translateX(-50%);
+  z-index: 300;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-radius: var(--r-pill);
+  background: var(--ink);
+  color: var(--bg);
+  box-shadow: var(--lift-3);
+  animation: fxslide 2.8s var(--ease-out) forwards;
+}
+.fx-badge__ring {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 3px solid #B87333;
+  flex-shrink: 0;
+}
+.fx-badge__ring[data-tier="silver"] { border-color: #9AA3AB; }
+.fx-badge__ring[data-tier="gold"]   { border-color: #D4A017; }
+.fx-badge__t { display: block; font-size: var(--t-xs); opacity: .7; }
+.fx-badge__n { display: block; font-weight: 800; font-size: var(--t-sm); }
+@keyframes fxslide {
+  0%   { opacity: 0; transform: translate(-50%, 16px); }
+  10%  { opacity: 1; transform: translate(-50%, 0); }
+  85%  { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -8px); }
+}
+@media (min-width: 900px) { .fx-badge { bottom: 30px; } }
+
+/* ---------------- the badge collection ----------------
+   Locked badges stay visible and show their progress — a collection
+   you cannot see the shape of is not a collection, it is a surprise. */
+.badge {
+  position: relative;
+  text-align: left;
+  border: 1px solid transparent;
+  transition: transform var(--fast) var(--ease-out), border-color var(--fast);
+}
+.badge:not([disabled]):active { transform: scale(.97); }
+.badge[disabled] { cursor: default; }
+.badge--bronze .badge__ic { color: #B87333; }
+.badge--silver .badge__ic { color: #8A929A; }
+.badge--gold   .badge__ic { color: #C9971A; }
+.badge.is-picked { border-color: var(--brand-ink); box-shadow: var(--lift-2); }
+
+.badge__bar {
+  display: block;
+  height: 4px;
+  margin-top: 8px;
+  border-radius: var(--r-pill);
+  background: rgba(23,23,23,.10);
+  overflow: hidden;
+}
+.badge__bar > span { display: block; height: 100%; background: var(--ink-faint); border-radius: var(--r-pill); }
+
+.badge__pin {
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 20px; height: 20px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--brand-ink);
+  color: var(--on-brand);
+}
+
+/* ---------------- someone else's profile ---------------- */
+.personhead {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 4px var(--pad) 0;
+  padding: 16px;
+  border-radius: var(--r-lg);
+  background: linear-gradient(160deg, var(--peach-0), var(--peach-1));
+  box-shadow: var(--lift-1);
+}
+.personhead__body { display: flex; flex-direction: column; min-width: 0; }
+.personhead__name { font-size: var(--t-lg); font-weight: 800; letter-spacing: -.01em; }
+.personhead__lv { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+
+/* the showcase, on your own profile */
+.showcase { display: flex; gap: 8px; flex-wrap: wrap; padding: 10px var(--pad) 0; }
+.showcase__b {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--r-pill);
+  background: var(--cream);
+  border: 1px solid var(--hairline);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+.showcase__b[data-tier="bronze"] { color: #8A5623; }
+.showcase__b[data-tier="silver"] { color: #6E767E; }
+.showcase__b[data-tier="gold"]   { color: #9A7210; }

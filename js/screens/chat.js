@@ -107,7 +107,12 @@ function bubble(m, byId, meId) {
   const who = byId[m.user_id] || { display_name: "someone" };
 
   return el("div", { class: `msg ${mine ? "msg--mine" : ""}` }, [
-    mine ? null : avatar(who.avatar_url, who.display_name),
+    mine ? null : el("button", {
+      class: "msg__who-btn",
+      type: "button",
+      "aria-label": `Open ${who.display_name}'s profile`,
+      onclick: () => go(`person/${m.user_id}`),
+    }, [avatar(who.avatar_url, who.display_name)]),
     el("div", { class: "msg__body" }, [
       mine ? null : el("span", { class: "msg__who", text: who.display_name }),
       el("p", { class: "msg__text", text: m.body }),

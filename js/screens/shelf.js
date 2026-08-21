@@ -26,22 +26,27 @@
    ============================================================ */
 
 import { DB } from "../db.js";
-import { el, avatar, fmtDistance, fmtShortDate } from "../ui.js";
+import { el, avatar, fmtDistance, fmtShortDate, toast } from "../ui.js";
 import { icon } from "../icons.js";
 import { say, reducedMotion } from "../a11y.js";
 import { landscape } from "../art.js";
 import { go, back } from "../router.js";
+import { personBadge } from "../appbar.js";
+import { catalogue, TIERS, MAX_SHOWCASE } from "../badges.js";
+import { celebrateNew } from "../fx.js";
+import { levelFor } from "../levels.js";
 
 export async function shelf({ id }) {
   const section = id || "photos";
   const meId = DB.uid();
 
-  const [members, hikes, logs, profiles, scans] = await Promise.all([
+  const [members, hikes, logs, profiles, scans, stats] = await Promise.all([
     DB.list("hike_members"),
     DB.list("hikes"),
     DB.list("trail_logs", { filter: { user_id: meId } }),
     DB.list("profiles"),
     DB.list("scans", { filter: { user_id: meId } }),
+    DB.allStats(),
   ]);
 
   const byId = Object.fromEntries(profiles.map((p) => [p.id, p]));
@@ -109,10 +114,13 @@ export async function shelf({ id }) {
     wrap.append(el("div", { class: "stack" }, people.length ? people.map((u) => {
       const p = byId[u] || { display_name: "someone" };
       const shared = members.filter((m) => m.user_id === u && myHikeIds.has(m.hike_id)).length;
-      return el("div", { class: "row" }, [
+      return el("button", { class: "row", type: "button", onclick: () => go(`person/${u}`) }, [
         avatar(p.avatar_url, p.display_name),
         el("span", { class: "row__body" }, [
-          el("span", { class: "row__title", text: p.display_name }),
+          el("span", { class: "row__title" }, [
+            el("span", { text: p.display_name }),
+            personBadge(stats[u]),
+          ]),
           el("span", { class: "row__sub", text: `${p.pronouns ? p.pronouns + " · " : ""}${shared} hike${shared === 1 ? "" : "s"} together` }),
         ]),
       ]);
@@ -120,21 +128,79 @@ export async function shelf({ id }) {
     return wrap;
   }
 
-  /* badges — earned, and you choose which to display (the whiteboard) */
-  const earned = [
-    { key: "first", label: "First steps", when: logs.length >= 1, hint: "Log your first trail" },
-    { key: "ten", label: "Ten kay", when: logs.reduce((a, l) => a + l.distance_m, 0) >= 10000, hint: "Walk 10 km in total" },
-    { key: "social", label: "Good company", when: myHikeIds.size >= 2, hint: "Join two hikes" },
-    { key: "host", label: "Trail boss", when: hikes.some((h) => h.host_id === meId), hint: "Host a hike yourself" },
-    { key: "botanist", label: "Botanist", when: scans.length >= 3, hint: "Identify three plants or animals" },
-  ];
-  wrap.append(el("div", { class: "badgegrid" }, earned.map((b) =>
-    el("div", { class: `badge ${b.when ? "badge--on" : ""}` }, [
-      el("span", { class: "badge__ic", html: icon(b.when ? "check" : "leaf", { size: 20 }) }),
-      el("span", { class: "badge__l", text: b.label }),
-      el("span", { class: "tiny", text: b.when ? "Earned" : b.hint }),
+  /* ---- badges: the collection, and the three you show off ----
+     The whiteboard asked for "choose badges to display", and that is
+     the part that makes a collection worth having — everything else
+     is a checklist. Earning is derived from data; only the CHOICE is
+     stored, because a choice is a preference, not a score. */
+  const me = await DB.me();
+  const facts = {
+    joined: myHikeIds.size,
+    hosted: hikes.filter((h) => h.host_id === meId).length,
+    logs: logs.length,
+    metres: logs.reduce((a, l) => a + (l.distance_m || 0), 0),
+    messages: (await DB.list("messages", { filter: { user_id: meId } })).length,
+    scans: scans.length,
+    states: new Set([...myHikeIds].map((id) => (hikeById[id] || {}).region).filter(Boolean)).size,
+    hardDone: [...myHikeIds].filter((id) => (hikeById[id] || {}).difficulty === "hard").length,
+    streak: (await DB.statsFor(meId)).streak || 0,
+    people: new Set(
+      members.filter((m) => myHikeIds.has(m.hike_id) && m.user_id !== meId && m.status !== "left").map((m) => m.user_id)
+    ).size,
+  };
+  const all = catalogue(facts);
+  const earned = all.filter((b) => b.earned);
+  let chosen = [...((me && me.badges) || [])].filter((k) => earned.some((b) => b.key === k));
+
+  wrap.append(
+    el("p", { class: "meta", style: "padding:0 20px 4px" }, [
+      el("b", { text: `${earned.length} of ${all.length}` }),
+      el("span", { text: ` collected. Tap up to ${MAX_SHOWCASE} to show on your profile.` }),
     ])
-  )));
+  );
+
+  const grid = el("div", { class: "badgegrid" });
+
+  const draw = () => {
+    grid.replaceChildren(...all.map((b) => {
+      const picked = chosen.includes(b.key);
+      const node = el("button", {
+        class: `badge badge--${b.tier} ${b.earned ? "badge--on" : ""} ${picked ? "is-picked" : ""}`,
+        type: "button",
+        "aria-pressed": picked ? "true" : "false",
+        disabled: !b.earned,
+        "aria-label": b.earned
+          ? `${b.name}, ${TIERS[b.tier].label}. Earned. ${picked ? "Showing on your profile." : "Tap to show on your profile."}`
+          : `${b.name}, ${TIERS[b.tier].label}. Locked. ${b.hint}. ${b.progress} of ${b.goal}.`,
+        onclick: () => toggle(b.key),
+      }, [
+        el("span", { class: "badge__ic", html: icon(b.icon, { size: 20 }) }),
+        el("span", { class: "badge__l", text: b.name }),
+        el("span", { class: "tiny", text: b.earned ? TIERS[b.tier].label : b.hint }),
+        !b.earned && b.goal > 1
+          ? el("span", { class: "badge__bar", "aria-hidden": "true" }, [el("span", { style: `width:${(b.progress / b.goal) * 100}%` })])
+          : null,
+        picked ? el("span", { class: "badge__pin", html: icon("check", { size: 12 }), "aria-hidden": "true" }) : null,
+      ]);
+      return node;
+    }));
+  };
+
+  async function toggle(key) {
+    if (chosen.includes(key)) chosen = chosen.filter((k) => k !== key);
+    else if (chosen.length < MAX_SHOWCASE) chosen = [...chosen, key];
+    else { toast(`Only ${MAX_SHOWCASE} at a time — tap one off first`); say(`You can show ${MAX_SHOWCASE} badges at a time.`); return; }
+    draw();
+    await DB.saveProfile({ badges: chosen });
+    say(chosen.includes(key) ? "Added to your profile." : "Removed from your profile.");
+  }
+
+  draw();
+  wrap.append(grid);
+
+  /* fire once for anything newly earned since last visit */
+  celebrateNew(all, levelFor((await DB.statsFor(meId)).xp || 0).level);
+
   return wrap;
 }
 

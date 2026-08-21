@@ -351,12 +351,112 @@
 }
 .toast[data-show="1"] { opacity: 1; transform: translate(-50%, 0); }
 
-/* ---------------- status strip ---------------- */
-.statusline {
-  display: flex; align-items: center; gap: 8px;
-  padding: 6px var(--pad);
-  font-size: var(--t-xs);
-  color: var(--ink-faint);
+
+/* ---------------- top bar ----------------
+   Sticky, because the streak and level are ambient state — you should
+   be able to see them from any screen without going to look. */
+.appbar {
+  position: sticky;
+  top: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 8px var(--pad);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--hairline);
 }
-.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--forest); }
-.dot--warn { background: var(--amber); }
+
+.appbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--tap);
+  flex-shrink: 0;
+}
+.appbar__word {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  font-size: 1.15rem;
+  letter-spacing: -.03em;
+}
+
+/* the connection state: a dot, not a sentence. The full text lives in
+   aria-label, so it is still announced — it just stops eating a row. */
+.appbar__dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--forest);
+  flex-shrink: 0;
+}
+.appbar__dot--warn { background: var(--amber); }
+
+.chipstat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: var(--r-pill);
+  background: var(--cream);
+  border: 1px solid var(--hairline);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.chipstat--level .chipstat__lv { color: var(--brand-text); }
+.chipstat--level .chipstat__name { color: var(--ink-soft); font-weight: 600; }
+/* the level NAME is the first thing to go when space is tight — the
+   number carries the meaning on its own */
+@media (max-width: 400px) { .chipstat--level .chipstat__name { display: none; } }
+
+.chipstat--streak { color: var(--ink-faint); }
+.chipstat--streak.is-lit { color: var(--brand-ink); background: #FDECE2; border-color: transparent; }
+.chipstat--streak b { font-variant-numeric: tabular-nums; }
+
+/* ---------------- other people's level + streak ----------------
+   The "how experienced, and are they still turning up" signal, small
+   enough to sit beside a name in a list. */
+.pbadge { display: inline-flex; align-items: center; gap: 6px; margin-left: 6px; vertical-align: middle; }
+.pbadge__lv {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .02em;
+  padding: 2px 7px;
+  border-radius: var(--r-pill);
+  background: var(--brand-ink);
+  color: var(--on-brand);
+}
+.pbadge__streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--brand-ink);
+}
+/* on a photo scrim the badge needs its own contrast, not the page's */
+.deck__scrim .pbadge__streak { color: var(--on-photo); }
+
+.deck__host {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--t-xs);
+  margin-top: 6px;
+  opacity: .95;
+}
+
+/* an avatar you can open. The button adds no box of its own — the
+   avatar IS the target — but it still needs a real focus ring. */
+.avstack__btn, .msg__who-btn { display: block; border-radius: 50%; flex-shrink: 0; }
+.avstack__btn { margin-left: -12px; }
+.avstack__btn:first-child { margin-left: 0; }
+.avstack__btn .avatar { margin-left: 0; }
+.avstack__btn:active, .msg__who-btn:active { transform: scale(.92); }
+.avatar--xl { width: 76px; height: 76px; }

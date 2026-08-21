@@ -1,5 +1,5 @@
 /* ============================================================
-   Biomate — onboarding and settings
+   Biomate — onboarding
 
    The Figma's onboarding is 5 steps and still raw system-font
    wireframes, so this is designed rather than copied — but it keeps
@@ -15,8 +15,7 @@
 import { DB } from "../db.js";
 import { el, toast } from "../ui.js";
 import { icon } from "../icons.js";
-import { say, setAudio, setTheme } from "../a11y.js";
-import { get } from "../store.js";
+import { say } from "../a11y.js";
 import { go, back } from "../router.js";
 
 const EXPERIENCE = [
@@ -155,85 +154,4 @@ function mark() {
     <circle cx="24" cy="24" r="4.4" fill="var(--amber)"/>
     <circle cx="34" cy="16" r="4.4" fill="var(--forest)"/>
   </svg>`;
-}
-
-/* ---------------- settings ---------------- */
-export async function settings() {
-  const s = get();
-  const me = (await DB.me()) || {};
-  const wrap = el("div");
-
-  wrap.append(
-    el("div", { class: "topbar topbar--left" }, [
-      el("button", { class: "iconbtn iconbtn--ring", type: "button", "aria-label": "Back", html: icon("back", { size: 20 }), onclick: back }),
-      el("h1", { class: "display", style: "font-size:1.5rem", text: "Settings" }),
-    ])
-  );
-
-  const name = el("input", { class: "field", id: "dn", type: "text", "aria-label": "Display name" });
-  name.value = me.display_name || "";
-
-  wrap.append(el("section", { class: "block" }, [
-    el("label", { class: "tiny", for: "dn", text: "DISPLAY NAME" }),
-    name,
-    el("button", {
-      class: "btn btn--ghost", style: "margin-top:10px", type: "button", text: "Save",
-      onclick: async () => { await DB.saveProfile({ display_name: name.value.trim() || "You" }); toast("Saved"); say("Name saved."); },
-    }),
-  ]));
-
-  wrap.append(el("section", { class: "block" }, [
-    el("h2", { class: "h2", text: "Audio description" }),
-    el("p", { class: "meta", text: "Reads each screen aloud. Off by default so a shared link never surprises anyone. Screen readers get the same text whether this is on or not." }),
-    el("button", {
-      class: "switch", type: "button", role: "switch", style: "margin-top:10px",
-      "aria-checked": s.audio ? "true" : "false",
-      onclick: (e) => {
-        const next = e.currentTarget.getAttribute("aria-checked") !== "true";
-        e.currentTarget.setAttribute("aria-checked", next ? "true" : "false");
-        setAudio(next);
-      },
-    }, [
-      el("span", { class: "switch__label", text: "Speak screens aloud" }),
-      el("span", { class: "switch__track", "aria-hidden": "true" }, [el("span", { class: "switch__knob" })]),
-    ]),
-  ]));
-
-  wrap.append(el("section", { class: "block" }, [
-    el("h2", { class: "h2", text: "Appearance" }),
-    el("div", { class: "inline", style: "margin-top:8px" }, [
-      themeChip("Follow system", null, s.theme),
-      themeChip("Light", "light", s.theme),
-      themeChip("Dark", "dark", s.theme),
-    ]),
-  ]));
-
-  wrap.append(el("section", { class: "block" }, [
-    el("h2", { class: "h2", text: "Start over" }),
-    el("p", { class: "meta", text: "Clears everything stored on this device — your profile, hikes, messages and logged trails." }),
-    el("button", {
-      class: "btn btn--ghost", style: "margin-top:10px", type: "button", text: "Reset this device",
-      onclick: () => {
-        if (!confirm("Clear all Biomate data on this device? This cannot be undone.")) return;
-        ["biomate/db", "biomate/local-uid", "biomate/prefs", "biomate/onboarded", "biomate/session"]
-          .forEach((k) => localStorage.removeItem(k));
-        location.hash = "#/welcome/1";
-        location.reload();
-      },
-    }),
-  ]));
-
-  return wrap;
-}
-
-function themeChip(label, value, current) {
-  return el("button", {
-    class: "chip", type: "button", text: label,
-    "aria-pressed": current === value ? "true" : "false",
-    onclick: (e) => {
-      setTheme(value);
-      [...e.currentTarget.parentElement.children].forEach((c) => c.setAttribute("aria-pressed", "false"));
-      e.currentTarget.setAttribute("aria-pressed", "true");
-    },
-  });
 }

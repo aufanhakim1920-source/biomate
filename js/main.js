@@ -14,6 +14,7 @@ import { el } from "./ui.js";
 import { icon } from "./icons.js";
 import { loadPrefs } from "./store.js";
 import { mount as mountA11y, say } from "./a11y.js";
+import { mountAppbar, setAppbarState } from "./appbar.js";
 
 import { home } from "./screens/home.js";
 import { matchmaker } from "./screens/matchmaker.js";
@@ -27,7 +28,9 @@ import { shelf } from "./screens/shelf.js";
 import { photoscan } from "./screens/photoscan.js";
 import { trail } from "./screens/trail.js";
 import { host, region } from "./screens/host.js";
-import { onboarding, settings } from "./screens/onboarding.js";
+import { onboarding } from "./screens/onboarding.js";
+import { settings } from "./screens/settings.js";
+import { person } from "./screens/person.js";
 
 /* ---------------- routes ---------------- */
 route("home",       home,       { title: () => "Home",              nav: "home" });
@@ -46,6 +49,7 @@ route("host",       host,       { title: () => "Host a hike",       nav: "cards"
 route("region",     region,     { title: (p) => p.id || "Region",   nav: "home" });
 route("welcome",    onboarding, { title: () => "Welcome",           nav: "" });
 route("settings",   settings,   { title: () => "Settings",          nav: "map" });
+route("person",     person,     { title: () => "Profile",           nav: "map" });
 
 /* ---------------- bottom nav ---------------- */
 const NAV = [
@@ -73,34 +77,21 @@ function buildNav() {
   document.getElementById("app").append(nav);
 }
 
-/* ---------------- status strip ---------------- */
-function showStatus(status) {
-  const strip = document.getElementById("status");
-  if (!strip) return;
-  const live = status.driver === "supabase";
-  strip.replaceChildren(
-    el("span", { class: `dot ${live ? "" : "dot--warn"}` }),
-    el("span", {
-      text: live
-        ? "Connected — your hikes are shared with everyone"
-        : "Local mode — everything is saved on this device only",
-    })
-  );
-  /* the degraded flag exists so a fallback can never hide a failure.
-     Without it the app looks perfectly healthy while writing nothing. */
-  if (status.degraded) {
-    strip.append(el("span", { class: "tiny", style: "margin-left:6px", text: "(server unreachable)" }));
-  }
-}
-
 /* ---------------- go ---------------- */
 async function boot() {
   loadPrefs();
   mountA11y();
+  mountAppbar();
   buildNav();
 
   const status = await DB.boot();
-  showStatus(status);
+  setAppbarState({ status });
+
+  /* the streak moves just by showing up, so it is logged before
+     anything else and the bar is drawn as soon as it is known */
+  const streak = await DB.touchStreak();
+  const stats = await DB.statsFor(DB.uid());
+  setAppbarState({ streak, xp: stats.xp || 0 });
 
   /* first run lands in onboarding, not on a home screen full of other
      people's walks with no idea who you are */

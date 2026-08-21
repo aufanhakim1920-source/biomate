@@ -20,6 +20,8 @@ import { icon } from "../icons.js";
 import { say, reducedMotion } from "../a11y.js";
 import { get, set, savePrefs } from "../store.js";
 import { go } from "../router.js";
+import { refreshAppbar, personBadge } from "../appbar.js";
+import { xpBurst } from "../fx.js";
 
 /* Cut on a word boundary. A raw slice(0, 130) left "for anyone who'"
    dangling mid-word, which reads as a rendering fault rather than as
@@ -40,11 +42,12 @@ const VEL_COMMIT = 0.55;   // px per ms
 
 export async function matchmaker() {
   const me = DB.uid();
-  const [hikes, swipes, members, profiles] = await Promise.all([
+  const [hikes, swipes, members, profiles, stats] = await Promise.all([
     DB.list("hikes", { filter: { status: "open" } }),
     DB.list("swipes", { filter: { user_id: me } }),
     DB.list("hike_members"),
     DB.list("profiles"),
+    DB.allStats(),
   ]);
 
   const seen = new Set(swipes.map((s) => s.hike_id));
@@ -146,6 +149,10 @@ export async function matchmaker() {
       el("div", { class: "deck__scrim" }, [
         el("span", { class: "deck__name", text: h.title }),
         el("span", { class: "deck__line", html: `${icon("pin", { size: 15 })}<span>${h.location_name || h.region} · ${fmtShortDate(h.proposed_date)}</span>` }),
+        el("span", { class: "deck__host" }, [
+          el("span", { text: `Hosted by ${host ? host.display_name : "someone"}` }),
+          personBadge(stats[h.host_id]),
+        ]),
         el("span", { class: "deck__badge", html: `${icon("alert", { size: 13 })}<span>${difficultyLabel(h.difficulty)}</span>` }),
         el("p", { class: "deck__bio", text: clip(h.description) }),
         el("div", { class: "deck__tags" }, (h.tags || []).slice(0, 3).map((t) => el("span", { class: "deck__tag", text: t }))),
@@ -265,6 +272,11 @@ export async function matchmaker() {
 
     if (dir === "right") {
       await DB.upsert("hike_members", { hike_id: h.id, user_id: me, status: "joined" }, ["hike_id", "user_id"]);
+      /* 25 for joining + the terrain bonus — the same weights the
+         database uses, shown at the moment they are earned */
+      const terrain = { easy: 10, moderate: 30, hard: 70 }[h.difficulty] || 0;
+      xpBurst(25 + terrain, deckEl);
+      refreshAppbar();
       toast(`You're in — ${h.title.split("—")[0].trim()}`);
       say(`Joined ${h.title}. Opening the group chat.`);
       setTimeout(() => go(`chat/${h.id}`), 700);

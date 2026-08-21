@@ -14,7 +14,8 @@
 import { DB } from "../db.js";
 import { el, avatar, timeAgo, fmtShortDate } from "../ui.js";
 import { icon } from "../icons.js";
-import { ausMap } from "../ausmap.js";
+import { ausMap, ALL_REGIONS, regionName } from "../ausmap.js";
+import { missionsFor } from "../quests.js";
 import { go } from "../router.js";
 
 function greeting() {
@@ -26,12 +27,17 @@ function greeting() {
 
 export async function home() {
   const meId = DB.uid();
-  const [me, hikes, members, messages, profiles] = await Promise.all([
+  const [me, hikes, allHikes, members, messages, profiles, swipes, scans, avail, logs] = await Promise.all([
     DB.me(),
     DB.list("hikes", { filter: { status: "open" } }),
+    DB.list("hikes"),
     DB.list("hike_members"),
     DB.list("messages"),
     DB.list("profiles"),
+    DB.list("swipes", { filter: { user_id: meId } }),
+    DB.list("scans", { filter: { user_id: meId } }),
+    DB.list("availability", { filter: { user_id: meId } }),
+    DB.list("trail_logs", { filter: { user_id: meId } }),
   ]);
 
   const byId = Object.fromEntries(profiles.map((p) => [p.id, p]));
@@ -42,20 +48,71 @@ export async function home() {
 
   const wrap = el("div");
 
-  /* ---- brand ---- */
+  /* No wordmark here — the top bar carries it, and showing it twice on
+     the same screen just pushes the map down. */
   wrap.append(
-    el("div", { class: "brandbar" }, [
-      el("span", { class: "brandmark", html: logoMark() }),
-      el("span", { class: "brandword", text: "Biomate" }),
-    ]),
     el("p", { class: "hello" }, [
       el("em", { text: `${greeting()}, ${(me && me.display_name) || "friend"}` }),
       el("span", { text: "Where would you like to explore today?" }),
     ])
   );
 
-  /* ---- the map ---- */
-  wrap.append(ausMap((code) => go(`region/${code}`), counts));
+  /* ---- the map, doubling as the collection board ---- */
+  const hikeById = Object.fromEntries(allHikes.map((h) => [h.id, h]));
+  const visited = new Set(
+    [...myHikes].map((id) => (hikeById[id] || {}).region).filter(Boolean)
+  );
+  wrap.append(ausMap((code) => go(`region/${code}`), counts, visited));
+
+  wrap.append(
+    el("p", { class: "collect" }, [
+      el("b", { text: `${visited.size} of ${ALL_REGIONS.length}` }),
+      el("span", { text: visited.size === ALL_REGIONS.length
+        ? " states walked — the whole country."
+        : ` states walked. Next up: ${ALL_REGIONS.filter((c) => !visited.has(c)).map(regionName).slice(0, 2).join(" or ")}.` }),
+    ])
+  );
+
+  /* ---- today's missions ---- */
+  const todayISO = new Date().toISOString().slice(0, 10);
+  const sameDay = (iso) => (iso || "").slice(0, 10) === todayISO;
+  const facts = {
+    swipesToday: swipes.filter((s) => sameDay(s.created_at)).length,
+    joinedToday: members.filter((m) => m.user_id === meId && sameDay(m.joined_at)).length,
+    messagesToday: messages.filter((m) => m.user_id === meId && sameDay(m.created_at)).length,
+    stopsToday: 0,
+    scansToday: scans.filter((s) => sameDay(s.created_at)).length,
+    availToday: avail.filter((a) => sameDay(a.updated_at)).length,
+    metresToday: logs.filter((l) => sameDay(l.created_at)).reduce((a, l) => a + (l.distance_m || 0), 0),
+    newPeopleToday: 0,
+  };
+  const missions = missionsFor(facts, todayISO);
+  const doneCount = missions.filter((m) => m.done).length;
+
+  wrap.append(
+    el("section", { class: "missions" }, [
+      el("div", { class: "missions__head" }, [
+        el("h2", { class: "sectionhead", style: "padding:0", text: "Today's missions" }),
+        el("span", { class: "missions__count", text: `${doneCount}/${missions.length}` }),
+      ]),
+      el("ul", {}, missions.map((m) =>
+        el("li", { class: `mission ${m.done ? "is-done" : ""}` }, [
+          el("span", { class: "mission__ic", html: icon(m.done ? "check" : m.icon, { size: 18 }) }),
+          el("span", { class: "mission__body" }, [
+            el("span", { class: "mission__name", text: m.name }),
+            el("span", { class: "mission__bar", "aria-hidden": "true" }, [
+              el("span", { style: `width:${(m.progress / m.goal) * 100}%` }),
+            ]),
+          ]),
+          el("span", {
+            class: "mission__xp",
+            text: m.done ? "done" : `+${m.xp}`,
+            "aria-label": m.done ? `${m.name}: done` : `${m.name}: ${m.progress} of ${m.goal}, worth ${m.xp} XP`,
+          }),
+        ])
+      )),
+    ])
+  );
 
   /* ---- activity stack ---- */
   const feed = [];
@@ -130,16 +187,4 @@ export async function home() {
   }
 
   return wrap;
-}
-
-/* the mark from the Figma: a ringed circle holding a trail line with
-   three waypoint dots — terracotta, amber, forest */
-function logoMark() {
-  return `<svg viewBox="0 0 48 48" width="40" height="40" aria-hidden="true" focusable="false">
-    <circle cx="24" cy="24" r="21" fill="var(--cream)" stroke="var(--brand-text)" stroke-width="3.2"/>
-    <path d="M14 32 Q20 30 24 24 Q28 18 34 16" fill="none" stroke="var(--ink-soft)" stroke-width="2.4" stroke-linecap="round"/>
-    <circle cx="14" cy="32" r="4.4" fill="var(--brand)"/>
-    <circle cx="24" cy="24" r="4.4" fill="var(--amber)"/>
-    <circle cx="34" cy="16" r="4.4" fill="var(--forest)"/>
-  </svg>`;
 }

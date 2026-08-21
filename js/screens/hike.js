@@ -14,13 +14,15 @@ import { el, photo, avatar, toast, fmtDate, difficultyLabel } from "../ui.js";
 import { icon } from "../icons.js";
 import { say } from "../a11y.js";
 import { go, back } from "../router.js";
+import { personBadge } from "../appbar.js";
 
 export async function hike({ id }) {
   const meId = DB.uid();
-  const [rows, members, profiles] = await Promise.all([
+  const [rows, members, profiles, stats] = await Promise.all([
     DB.list("hikes", { filter: { id }, limit: 1 }),
     DB.list("hike_members", { filter: { hike_id: id } }),
     DB.list("profiles"),
+    DB.allStats(),
   ]);
   const h = rows[0];
   if (!h) return notFound();
@@ -76,10 +78,13 @@ export async function hike({ id }) {
     el("section", { class: "block" }, [
       el("h2", { class: "h2", text: "Details" }),
       detail("calendar", h.confirmed_date ? fmtDate(h.confirmed_date) : `${fmtDate(h.proposed_date)} (proposed)`),
-      detail("people",
-        others.length
+      el("div", { class: "detail" }, [
+        el("span", { class: "detail__ic", html: icon("people", { size: 20 }) }),
+        el("span", { text: others.length
           ? `${host.display_name} and ${others.length} other${others.length === 1 ? "" : "s"}`
-          : `${host.display_name} — first one in`),
+          : `${host.display_name} — first one in` }),
+        personBadge(stats[h.host_id]),
+      ]),
       detail("alert", `Difficulty: ${difficultyLabel(h.difficulty)}`),
       detail("pin", h.location_name || h.region),
     ])
@@ -91,7 +96,13 @@ export async function hike({ id }) {
       el("section", { class: "block" }, [
         el("h2", { class: "h2", text: "Who's coming" }),
         el("div", { class: "avstack" }, [
-          ...joined.slice(0, 5).map((m) => avatar((byId[m.user_id] || {}).avatar_url, (byId[m.user_id] || {}).display_name || "?")),
+          ...joined.slice(0, 5).map((m) =>
+            el("button", {
+              class: "avstack__btn",
+              type: "button",
+              "aria-label": `Open ${(byId[m.user_id] || {}).display_name || "this person"}'s profile`,
+              onclick: () => go(`person/${m.user_id}`),
+            }, [avatar((byId[m.user_id] || {}).avatar_url, (byId[m.user_id] || {}).display_name || "?")])),
           joined.length > 5 ? el("span", { class: "avstack__more", text: `+${joined.length - 5} more` }) : null,
         ]),
       ])

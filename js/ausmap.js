@@ -38,7 +38,17 @@ const REGIONS = [
   { code: "TAS", name: "Tasmania",           x: 79, y: 66 },
 ];
 
-export function ausMap(onPick, counts = {}) {
+/**
+ * @param {(code:string)=>void} onPick
+ * @param {Record<string,number>} counts  open hikes per region
+ * @param {Set<string>} visited           regions you have actually hiked in
+ *
+ * The map doubles as the COLLECTION BOARD. A state you have walked in
+ * is filled and ticked; one you haven't is an outline waiting to be
+ * claimed. Same element, twice the job — no extra screen, and the
+ * hero of the app becomes the thing you are filling in.
+ */
+export function ausMap(onPick, counts = {}, visited = new Set()) {
   const wrap = el("div", { class: "ausmap" });
 
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -75,13 +85,17 @@ export function ausMap(onPick, counts = {}) {
   const layer = el("div", { class: "ausmap__pins", role: "group", "aria-label": "Choose a region" });
   REGIONS.forEach((r) => {
     const n = counts[r.code] || 0;
+    const been = visited.has(r.code);
     layer.append(el("button", {
-      class: "ausmap__pin",
+      class: `ausmap__pin ${been ? "is-visited" : ""}`,
       type: "button",
       style: `left:${(r.x / 90) * 100}%; top:${(r.y / 74) * 100}%`,
-      "aria-label": n ? `${r.name}, ${n} hike${n === 1 ? "" : "s"}` : `${r.name}, no hikes yet`,
+      "aria-label":
+        (been ? `${r.name}, visited. ` : `${r.name}, not visited yet. `) +
+        (n ? `${n} hike${n === 1 ? "" : "s"} on offer.` : "No hikes on offer."),
       onclick: () => { say(r.name); onPick(r.code); },
     }, [
+      been ? el("span", { class: "ausmap__tick", html: TICK, "aria-hidden": "true" }) : null,
       el("span", { text: r.code }),
       n ? el("span", { class: "ausmap__count", text: String(n) }) : null,
     ]));
@@ -90,6 +104,11 @@ export function ausMap(onPick, counts = {}) {
 
   return wrap;
 }
+
+const TICK = `<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor"
+   stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7"/></svg>`;
+
+export const ALL_REGIONS = REGIONS.map((r) => r.code);
 
 export const regionName = (code) =>
   (REGIONS.find((r) => r.code === code) || {}).name || code;
