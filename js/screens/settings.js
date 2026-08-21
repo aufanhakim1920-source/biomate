@@ -219,9 +219,24 @@ export async function settings() {
         class: "btn btn--ghost", style: "margin-top:10px", type: "button", text: "Reset this device",
         onclick: () => {
           if (!confirm("Clear all Biomate data on this device? This cannot be undone.")) return;
-          ["biomate/db", "biomate/local-uid", "biomate/prefs", "biomate/onboarded",
-            "biomate/session", "biomate/celebrated", "biomate/streak"]
-            .forEach((k) => localStorage.removeItem(k));
+          /* Sweep by PREFIX rather than maintaining a list. The list had
+             already drifted once — `biomate/trail-draft` was added with
+             the trail recorder and never added here, so "reset" would
+             leave an unfinished walk behind to be offered back on the
+             next visit. A list of keys is a thing to forget; a prefix
+             is not. */
+          const wipe = (store) => {
+            const doomed = [];
+            for (let i = 0; i < store.length; i++) {
+              const k = store.key(i);
+              if (k && k.startsWith("biomate/")) doomed.push(k);
+            }
+            /* collected first, then removed — removing while iterating
+               reindexes the store and skips every other key */
+            doomed.forEach((k) => store.removeItem(k));
+          };
+          wipe(localStorage);
+          wipe(sessionStorage);
           location.hash = "#/welcome/1";
           location.reload();
         },
