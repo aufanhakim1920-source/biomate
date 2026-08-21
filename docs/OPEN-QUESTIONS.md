@@ -32,6 +32,19 @@ stats).
 Gamification (streak, levels, badges) is explicitly **secondary** to the social
 features.
 
+## ✅ Resolved 2026-08-22, after reading the Figma
+
+| Question | Answer |
+|---|---|
+| Who creates a group? | **Nobody — there are no standing groups.** A host creates a *hike*, and the hike is what you swipe on. Swiping right requests to join and drops you in that hike's chat. |
+| Person, group, or event on the card? | **A hosted hike.** Reconciles the brief, Aufan's "group photo", and the Figma's host/RSVP flow. |
+| Availability picker? | **Dropped.** Host sets the date, others RSVP — what the Figma shows. Goes in the PRD's *Not built* with the reasoning, not silently omitted. |
+| Photoscan? | **Real identification**, via a Supabase Edge Function so the key never reaches the browser. Becomes the product's one honest AI claim. |
+| Phone or desktop? | **Phone.** Figma frames are 402×874 (iPhone 16/17 Pro). |
+
+Still open: whether the trail recorder uses real GPS, whether gender is a filter
+or a safety feature, and the deadline.
+
 ## New, from the brief
 
 8. **Who creates a group?** The brief says users swipe on groups but not where

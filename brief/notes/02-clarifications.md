@@ -182,3 +182,86 @@ Desktop keeps pointer-follow. **Same component, same `--x/--y` custom properties
 — only the source of the values changes.**
 
 
+
+---
+
+## 2026-08-22 — The three Figma-vs-brief forks, resolved
+
+Asked after reading the Figma (`03-figma-read.md`). All three answered; all three
+change the schema.
+
+### 1. A swipe card is a HIKE SOMEONE IS HOSTING
+
+Not a person, not a standing group. **The card is an event** — like the Figma's
+*"Uluru and Kata Tjuta – Looking for friends!"* page — carrying the group's
+favourite photo, the host, the date, the difficulty and the distance away.
+
+**The event IS the group.** Swiping right is requesting to join, and that lands
+you in that event's group chat. This reconciles all three sources that looked
+contradictory: the brief's "matching with hiking groups", Aufan's "the group
+photo, their favourite photo together", and the Figma's host + fixed date + RSVP
+flow.
+
+**Consequences for the data model:**
+- The central table is `hikes` (host, title, photo, date, difficulty, description,
+  location, tags), **not** `groups` and **not** a people-matching table.
+- `hike_members` carries membership and status (`requested` / `joined` / `left`),
+  which is also what makes *"number of unique people you have hiked with"*
+  computable — count distinct co-members across your completed hikes.
+- Swipes are a table of their own (`hike_id`, `user_id`, `direction`) so a card
+  never reappears, and so a right-swipe is an auditable join request rather than
+  a silent insert into membership.
+- A standing group never has to exist. **No group lifecycle, no roles, no "what
+  is this group for between hikes"** — a real simplification.
+- 1:1 DMs still exist (the Messages screen shows them alongside group threads),
+  but they are a *consequence* of meeting someone, not the matching mechanism.
+
+### 2. The host sets the date — no availability grid
+
+Milestone 2's *"LettuceMeet-style calendar availability page"* is **out**, in
+favour of what the Figma already shows: the host fixes a date, everyone else
+RSVPs.
+
+Why this is the right call and not just the easy one: it is how hiking meetups
+actually work — somebody proposes a specific day and you are in or out — and a
+fixed date is what lets every *other* screen work. A card, a list row and a
+notification all need a date to show. An event whose date is "to be decided by a
+poll" weakens the whole app to strengthen one screen.
+
+**Milestone 2 therefore becomes: the group chat + the agenda page** (purpose,
+activities, stop points), both of which the design already has.
+
+⚠️ **This is a scope change from the written brief.** It goes in the PRD's *Not
+built* section with the reasoning above, not silently dropped — a marker
+comparing the app to the brief will look for it.
+
+### 3. Photoscan is real, and it is the honest AI story
+
+*"Point at a plant or animal to identify it."* It owns nav slot 2, so it was
+never a side feature — it just never made it into the written brief.
+
+**It does real identification.** That changes what I told Aufan earlier: I said
+the PRD should state there is **no AI inside the product**, because the matching
+is a weighted preference-overlap score. That statement is now wrong and must be
+rewritten. The correct one is sharper and more defensible:
+
+> One model doing one job well — identifying a plant or animal from a photo.
+> Everything else in the app (matching, events, chat, stats) is deterministic and
+> is not described as AI.
+
+That is a far better position in front of a judge than either "no AI" or a
+scoring function dressed up as intelligence.
+
+**⚠️ The architecture this forces.** A vision model needs a key, and the demo is
+public on GitHub Pages. **The key must not be in the browser.** So Photoscan
+routes browser → **Supabase Edge Function** → vision API, with the key held as an
+edge-function secret. Consequences:
+- First piece of server-side code in the project. Supabase MCP has
+  `deploy_edge_function`, so no new hosting.
+- Needs rate limiting per `auth.uid()`, because a public demo with a paid API
+  behind it is an invitation.
+- **Needs a graceful failure**, not a spinner that never ends: a clear "couldn't
+  identify this" with the photo kept and a retry. Per the Peak & Pan rule that a
+  silent capability failure reads as a broken build.
+- Peak & Pan's pattern of pasting a key into `localStorage` at runtime is **not**
+  usable here — it works for a solo user, not for judges opening a link.
