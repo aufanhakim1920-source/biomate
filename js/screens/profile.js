@@ -191,6 +191,24 @@ export async function profile() {
     );
   }
 
+  /* ---- start a walk ----
+     The recorder existed with no way in: `#/trail` was reachable only
+     by typing it. A feature with no door is a feature nobody has. It
+     sits here, under the numbers it feeds, because "walked / trails
+     logged / on foot" is exactly the moment you understand what
+     pressing it does. */
+  wrap.append(
+    el("div", { class: "block" }, [
+      el("button", {
+        class: "btn btn--primary btn--block",
+        type: "button",
+        html: `${icon("route", { size: 18 })}<span>Record a walk</span>`,
+        onclick: () => go("trail"),
+      }),
+      el("p", { class: "tiny", style: "padding:8px 2px 0", text: "Follows your phone's GPS and draws the route as you go. Open it from a hike instead and the walk is saved against that group." }),
+    ])
+  );
+
   /* ---- the shelf ---- */
   wrap.append(el("h2", { class: "sectionhead", text: "Your shelf" }));
 

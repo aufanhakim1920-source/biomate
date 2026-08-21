@@ -147,6 +147,22 @@ export async function hike({ id }) {
 
   wrap.append(el("div", { class: "block" }, [action]));
 
+  /* Recording is offered only to people actually on the hike, and only
+     from here — starting it from the hike is what attaches the saved
+     walk to this group, so "who was there" has an answer later. */
+  if (iAmHost || iAmIn) {
+    wrap.append(
+      el("div", { class: "block", style: "padding-top:0" }, [
+        el("button", {
+          class: "btn btn--ghost btn--block",
+          type: "button",
+          html: `${icon("route", { size: 18 })}<span>Record this walk</span>`,
+          onclick: () => go(`trail/${h.id}`),
+        }),
+      ])
+    );
+  }
+
   /* the way out sits under the one action, never beside it — leaving
      is never the thing you came to this page to do */
   const leave = leaveControl({

@@ -102,6 +102,13 @@ export async function shelf({ id }) {
        completely different as a line. */
     if (logs.length) {
       wrap.append(el("h2", { class: "sectionhead", text: "Logged trails" }));
+      wrap.append(el("div", { class: "block", style: "padding-bottom:6px" }, [
+        el("button", {
+          class: "btn btn--ghost btn--block", type: "button",
+          html: `${icon("route", { size: 18 })}<span>Record another walk</span>`,
+          onclick: () => go("trail"),
+        }),
+      ]));
       wrap.append(el("div", { class: "stack" }, logs.map((l) => {
         const thumb = el("canvas", { class: "routethumb", width: "120", height: "120", "aria-hidden": "true" });
         /* synchronous on purpose — see the note in screens/walk.js:
