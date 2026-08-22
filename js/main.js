@@ -27,7 +27,6 @@ import { location as locationScreen } from "./screens/location.js";
 import { when } from "./screens/when.js";
 import { profile } from "./screens/profile.js";
 import { shelf } from "./screens/shelf.js";
-import { photoscan } from "./screens/photoscan.js";
 import { trail } from "./screens/trail.js";
 import { walk } from "./screens/walk.js";
 import { host, region } from "./screens/host.js";
@@ -48,7 +47,6 @@ route("location",   locationScreen, { title: () => "Location",      nav: "chat" 
 route("when",       when,       { title: () => "Availability",      nav: "chat" });
 route("profile",    profile,    { title: () => "Profile",           nav: "map" });
 route("shelf",      shelf,      { title: (p) => p.id || "Shelf",    nav: "map" });
-route("photoscan",  photoscan,  { title: () => "Photoscan",         nav: "camera" });
 route("trail",      trail,      { title: () => "On trail",          nav: "map" });
 route("walk",       walk,       { title: () => "A walk you did",    nav: "map" });
 route("host",       host,       { title: () => "Start a group",     nav: "cards" });
@@ -61,7 +59,6 @@ route("person",     person,     { title: () => "Profile",           nav: "map" }
 /* ---------------- bottom nav ---------------- */
 const NAV = [
   { key: "map",    to: "profile",    icon: "map",    label: "You" },
-  { key: "camera", to: "photoscan",  icon: "camera", label: "Photoscan" },
   { key: "home",   to: "home",       icon: "home",   label: "Home" },
   { key: "chat",   to: "messages",   icon: "chat",   label: "Messages" },
   { key: "cards",  to: "matchmaker", icon: "cards",  label: "Discover" },

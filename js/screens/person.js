@@ -5,8 +5,8 @@
 
    Everything here is public by design — profiles, memberships, trail
    logs and the derived stats view all allow anonymous read. Nothing
-   private leaks: swipes are readable only by their owner, scans only
-   by theirs, and chat only by members of that hike.
+   private leaks: swipes are readable only by their owner, and chat
+   only by members of that hike.
    ============================================================ */
 
 import { DB } from "../db.js";

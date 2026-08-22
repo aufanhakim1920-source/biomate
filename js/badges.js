@@ -28,7 +28,7 @@ export const TIERS = {
 export function catalogue(f) {
   const {
     joined = 0, hosted = 0, logs = 0, metres = 0, messages = 0,
-    scans = 0, states = 0, hardDone = 0, streak = 0, people = 0,
+    states = 0, hardDone = 0, streak = 0, people = 0,
   } = f;
 
   const B = (key, name, hint, tier, progress, goal, icon) => ({
@@ -46,7 +46,6 @@ export function catalogue(f) {
 
     B("ten_k",       "Ten Kay",      "Walk 10 km in total",               "silver", Math.floor(metres / 1000), 10, "route"),
     B("host",        "Trail Boss",   "Host a hike of your own",           "silver", hosted,   1,  "map"),
-    B("botanist",    "Botanist",     "Identify three plants or animals",  "silver", scans,    3,  "leaf"),
     B("social",      "Well Met",     "Walk with ten different people",    "silver", people,  10,  "people"),
     B("week",        "Seven Days",   "Keep a seven day streak",           "silver", streak,   7,  "flame"),
 

@@ -42,12 +42,11 @@ export async function shelf({ id }) {
   const section = id || "photos";
   const meId = DB.uid();
 
-  const [members, hikes, logs, profiles, scans, stats] = await Promise.all([
+  const [members, hikes, logs, profiles, stats] = await Promise.all([
     DB.list("hike_members"),
     DB.list("hikes"),
     DB.list("trail_logs", { filter: { user_id: meId } }),
     DB.list("profiles"),
-    DB.list("scans", { filter: { user_id: meId } }),
     DB.allStats(),
   ]);
 
@@ -71,7 +70,6 @@ export async function shelf({ id }) {
         url: (hikeById[hid] || {}).photo_url || landscape(hid),
         alt: (hikeById[hid] || {}).title || "",
       })),
-      ...scans.map((s) => ({ url: s.image_url, alt: s.label || "Scan" })),
     ].filter((s) => s.url);
 
     /* pad so the grid always has something to reveal */
@@ -169,7 +167,6 @@ export async function shelf({ id }) {
     logs: logs.length,
     metres: logs.reduce((a, l) => a + (l.distance_m || 0), 0),
     messages: (await DB.list("messages", { filter: { user_id: meId } })).length,
-    scans: scans.length,
     states: new Set([...myHikeIds].map((id) => (hikeById[id] || {}).region).filter(Boolean)).size,
     hardDone: [...myHikeIds].filter((id) => (hikeById[id] || {}).difficulty === "hard").length,
     streak: (await DB.statsFor(meId)).streak || 0,

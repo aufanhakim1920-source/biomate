@@ -27,7 +27,7 @@ function greeting() {
 
 export async function home() {
   const meId = DB.uid();
-  const [me, hikes, allHikes, members, messages, profiles, swipes, scans, avail, logs] = await Promise.all([
+  const [me, hikes, allHikes, members, messages, profiles, swipes, avail, logs] = await Promise.all([
     DB.me(),
     DB.list("hikes", { filter: { status: "open" } }),
     DB.list("hikes"),
@@ -35,7 +35,6 @@ export async function home() {
     DB.list("messages"),
     DB.list("profiles"),
     DB.list("swipes", { filter: { user_id: meId } }),
-    DB.list("scans", { filter: { user_id: meId } }),
     DB.list("availability", { filter: { user_id: meId } }),
     DB.list("trail_logs", { filter: { user_id: meId } }),
   ]);
@@ -84,7 +83,6 @@ export async function home() {
     joinedToday: members.filter((m) => m.user_id === meId && sameDay(m.joined_at)).length,
     messagesToday: messages.filter((m) => m.user_id === meId && sameDay(m.created_at)).length,
     stopsToday: 0,
-    scansToday: scans.filter((s) => sameDay(s.created_at)).length,
     availToday: avail.filter((a) => sameDay(a.updated_at)).length,
     metresToday: logs.filter((l) => sameDay(l.created_at)).reduce((a, l) => a + (l.distance_m || 0), 0),
     newPeopleToday: 0,

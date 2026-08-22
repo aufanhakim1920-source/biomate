@@ -44,7 +44,7 @@ const BOOKS = [
 
 export async function profile() {
   const meId = DB.uid();
-  const [me, members, hikes, logs, profiles, stats, msgs, scans] = await Promise.all([
+  const [me, members, hikes, logs, profiles, stats, msgs] = await Promise.all([
     DB.me(),
     DB.list("hike_members"),
     DB.list("hikes"),
@@ -52,7 +52,6 @@ export async function profile() {
     DB.list("profiles"),
     DB.list("player_stats", { filter: { id: meId }, limit: 1 }),
     DB.list("messages", { filter: { user_id: meId } }),
-    DB.list("scans", { filter: { user_id: meId } }),
   ]);
 
   const byId = Object.fromEntries(profiles.map((p) => [p.id, p]));
@@ -81,7 +80,7 @@ export async function profile() {
   }, 0);
   const rows = breakdown({
     joined: myMemberRows.length, hosted, terrain,
-    messages: msgs.length, metres: totalM, scans: scans.length,
+    messages: msgs.length, metres: totalM,
   });
 
   const wrap = el("div");
@@ -114,7 +113,6 @@ export async function profile() {
     logs: logs.length,
     metres: totalM,
     messages: msgs.length,
-    scans: scans.length,
     states: new Set([...myHikeIds].map((id) => (hikes.find((h) => h.id === id) || {}).region).filter(Boolean)).size,
     hardDone: [...myHikeIds].filter((id) => (hikes.find((h) => h.id === id) || {}).difficulty === "hard").length,
     streak: (stats[0] && stats[0].streak) || 0,

@@ -18,7 +18,6 @@
      terrain difficulty  10/30/70  easy / moderate / hard
      a message             5   capped at 150 — chat is not a ladder
      distance walked       1 per 100m
-     identifying something 15   Photoscan
    ============================================================ */
 
 export const LEVELS = [
@@ -56,14 +55,13 @@ export function levelFor(xp = 0) {
  * people where their points came from. Never used as the score itself —
  * the database's number is the truth.
  */
-export function breakdown({ joined = 0, hosted = 0, terrain = 0, messages = 0, metres = 0, scans = 0 }) {
+export function breakdown({ joined = 0, hosted = 0, terrain = 0, messages = 0, metres = 0 }) {
   return [
     { label: "Hikes joined",     xp: joined * 25,   detail: `${joined} × 25` },
     { label: "Hikes hosted",     xp: hosted * 60,   detail: `${hosted} × 60` },
     { label: "Terrain climbed",  xp: terrain,       detail: "harder ground, more points" },
     { label: "Said something",   xp: Math.min(messages * 5, 150), detail: messages ? `${messages} messages (capped at 150)` : "—" },
     { label: "Distance walked",  xp: Math.floor(metres / 100), detail: `${(metres / 1000).toFixed(1)} km` },
-    { label: "Things identified",xp: scans * 15,    detail: `${scans} × 15` },
   ].filter((r) => r.xp > 0);
 }
 

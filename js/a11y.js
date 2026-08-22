@@ -72,9 +72,10 @@ function mountSkipLink() {
 /**
  * Announce something.
  * @param {string} text
- * @param {boolean} [force] speak even if audio description is off
- *        (used for the Photoscan result, which is the whole point of
- *        the feature for a low-vision user)
+ * @param {boolean} [force] speak even if audio description is off.
+ *        For the few things worth interrupting for: a kilometre
+ *        milestone while the phone is in a pocket, a save confirming,
+ *        an account action landing. Not for ordinary screen changes.
  */
 export function say(text, force = false) {
   if (!text || text === lastSpoken) return;

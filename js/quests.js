@@ -15,7 +15,6 @@ const POOL = [
   { key: "join1",   name: "Join a hike",              goal: 1, xp: 40, of: (f) => f.joinedToday,   icon: "check" },
   { key: "say1",    name: "Say something to a group", goal: 1, xp: 20, of: (f) => f.messagesToday, icon: "chat" },
   { key: "plan1",   name: "Add a stop to a plan",     goal: 1, xp: 25, of: (f) => f.stopsToday,    icon: "pin" },
-  { key: "scan1",   name: "Identify something",       goal: 1, xp: 30, of: (f) => f.scansToday,    icon: "leaf" },
   { key: "when1",   name: "Fill in your availability",goal: 1, xp: 25, of: (f) => f.availToday,    icon: "calendar" },
   { key: "walk2",   name: "Walk two kilometres",      goal: 2, xp: 35, of: (f) => Math.floor(f.metresToday / 1000), icon: "route" },
   { key: "meet1",   name: "End up on a hike with someone new", goal: 1, xp: 45, of: (f) => f.newPeopleToday, icon: "people" },

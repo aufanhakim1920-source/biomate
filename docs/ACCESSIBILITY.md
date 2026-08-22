@@ -78,21 +78,14 @@ Blurred photos keep their `alt` text and stay focusable and reachable. The blur
 is a **visual** effect only. Per the standing rule: *a hidden-by-default state
 that only JS can reveal is a bug, not an animation.*
 
-### 5. ⭐ Photoscan is an accessibility feature in disguise
-
-*"Point at a plant or animal to identify it"* — spoken aloud, that is genuinely
-useful for a low-vision user on a trail. **Speak the result, don't just print
-it.** Costs one line given audio description already exists, and it turns a
-novelty into the most inclusive thing in the app.
-
-### 6. ⭐ The trail recorder speaks milestones
+### 5. ⭐ The trail recorder speaks milestones
 
 *"Three kilometres. Forty-seven minutes."* every kilometre. Designed for blind
 users, useful for **everyone** — your phone is in your pocket while you are
 walking. This is the clearest case of an accessibility feature that is simply a
 better feature.
 
-### 7. The availability grid needs a real keyboard path
+### 6. The availability grid needs a real keyboard path
 
 Drag-to-paint across a week × hours grid is the least accessible interaction in
 the app. It needs a parallel, not an afterthought:
@@ -102,18 +95,18 @@ the app. It needs a parallel, not an afterthought:
   tabbing through 7 × 14 cells is technically accessible and practically cruel.
 - The overlap heatmap is **never colour-only**: each cell states its count.
 
-### 8. Colour is never the only signal
+### 7. Colour is never the only signal
 
 Difficulty, RSVP status, who has responded. The Figma already does this right —
 difficulty is ⚠️ + the word "Moderate", not a coloured dot. Keep that discipline.
 
-### 9. `lang` on the Woiwurrung
+### 8. `lang` on the Woiwurrung
 
 **"Womindjeka!"** on the homepage gets `lang="woi"`. Without it a screen reader
 mangles it through English phonics. Small, correct, and respectful of the fact
 that the word is an acknowledgement of Country rather than decoration.
 
-### 10. Motion
+### 9. Motion
 
 Already the standing rule from [[Motion Must Be User Driven]]: everything
 one-shot and user-triggered, nothing loops or drifts, all of it skipped under
@@ -124,7 +117,7 @@ tested by its own author.
 Chrome** — CSS honours it, JS does not. A reduced-motion JS branch cannot be
 verified with that flag; test it another way.
 
-### 11. The ordinary things, done properly
+### 10. The ordinary things, done properly
 
 - **`rem` for type**, so the OS font-size setting actually works.
 - **44 × 44 minimum touch targets** — the five-icon nav is the one at risk.

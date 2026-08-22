@@ -182,7 +182,6 @@ export function seedLocal(myId) {
     trail_logs,
     swipes: [],
     availability: [],
-    scans: [],
   };
 }
 
