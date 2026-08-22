@@ -4,8 +4,11 @@ A web app by the **team rocket** university group — the same team that built
 [Peak & Pan](https://github.com/aufanhakim1920-source/peak-and-pan). New theme,
 new project type.
 
-> The brief hasn't landed yet. The backend half that doesn't depend on the
-> subject matter is built; the frontend starts when the design does.
+> **Live:** https://aufanhakim1920-source.github.io/biomate/
+>
+> Built and deployed — 20 routes across 17 screens, 41 JavaScript modules,
+> no framework and no build step. Swipe a hike, join it, chat, plan a date
+> together, walk it with GPS recording, and keep what you walked.
 
 ## Where things go
 
@@ -74,8 +77,15 @@ gets **rotated**, not reverted.
 
 - ✅ Supabase project `biomate` — Sydney, free tier
 - ✅ `schema.sql` applied: profiles, media index, storage buckets, RLS
-- ⬜ **Anonymous sign-ins must be switched ON by hand** — Supabase dashboard →
+- ✅ **Anonymous sign-ins** switched on by hand — Supabase dashboard →
   Authentication → Sign In / Providers → Anonymous sign-ins. There is no API
   for it, and nothing auth-related works until it's on.
-- ⬜ Domain tables — come with the brief
-- ⬜ Frontend — starts on `gas`
+- ✅ Domain tables applied — hikes, membership with roles, swipes, messages,
+  plans, availability, trail logs. The full statements live in the project's
+  migration history; `schema.sql` is the narrative record.
+- ✅ Frontend — 20 routes, deployed to GitHub Pages
+- ✅ Guest-first auth — anonymous users convert to a real account **in place**,
+  so the user id never changes and nothing has to be migrated
+- ✅ Two test suites, plain Node, no framework — `test/track.test.mjs` (the
+  GPS recorder under load) and `test/recommend.test.mjs` (the deck's ranking
+  and, harder, the sentences it prints)
