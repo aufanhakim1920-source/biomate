@@ -214,10 +214,37 @@ module graph and the app booted blank.
 
 ## Built With
 
+**Languages & markup**
 ```
-javascript · html5 · css3 · supabase · postgresql · postgrest · plpgsql
-canvas · svg · web-audio · geolocation · github-pages · figma · claude
+javascript · html5 · css3 · sql · plpgsql
 ```
+
+**Platform & data**
+```
+supabase · postgresql · postgrest · supabase-auth · supabase-storage
+row-level-security · github-pages · git
+```
+
+**Browser APIs** — all used directly, with no library in front of any of them
+```
+canvas · svg · geolocation · screen-wake-lock · web-speech-api
+pointer-events · file-api · localstorage · matchmedia · web-animations
+```
+
+**Design & tooling**
+```
+figma · figjam · claude · node
+```
+
+> GitHub's language bar only counts files in the repo, so it shows just
+> JavaScript, CSS and HTML. That is accurate about the source and
+> misleading about the stack: there is no framework, no bundler and no
+> runtime dependency, so everything else in this list is the platform
+> and the browser rather than a folder of vendored code.
+>
+> ⚠️ Not listed, deliberately: **Web Audio API**. The sound cues are
+> plain `HTMLAudioElement`, and claiming Web Audio would be a nicer word
+> for a thing we did not do.
 
 ---
 
