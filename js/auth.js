@@ -255,7 +255,25 @@ export async function createAccount(email, password) {
   const s = await ready();
   if (!s) throw new Error("Not connected — can't create an account right now.");
 
-  const user = await call("user", { email, password }, { method: "PUT", token: s.access_token });
+  /* ⚠️ Send redirect_to EXPLICITLY. Without it GoTrue falls back to the
+     project's Site URL, and two of Aufan's friends confirmed their
+     accounts successfully and then landed on a GitHub 404 — the
+     redirect had lost the `/biomate/` path and gone to the bare
+     github.io root, which serves a 404 because no user-root repo
+     exists there. Their accounts were fine; only the landing was
+     broken, which is the worst kind of broken because it looks like
+     the signup failed.
+
+     Diagnosed the boring way: the Site URL had already been corrected
+     15 minutes BEFORE they confirmed, so the dashboard value was not
+     what decided this. Rather than keep guessing at a setting that
+     cannot be read back through the API, stop depending on it — the
+     page the person is standing on is a fact we already have.
+
+     Requires the URL to be in Authentication → URL Configuration →
+     Redirect URLs, which is where `…/biomate/**` earns its keep. */
+  const back = encodeURIComponent(location.origin + location.pathname);
+  const user = await call(`user?redirect_to=${back}`, { email, password }, { method: "PUT", token: s.access_token });
 
   /* With confirmation on, the address lands in new_email and the user
      stays anonymous until the link is clicked. With autoconfirm on it
@@ -301,11 +319,14 @@ export async function signOut() {
     never gets here, and an account made some other way would be
     "signup", so fall back rather than dead-end on a type mismatch. */
 export async function resendConfirmation(email) {
+  /* same redirect as the original, or the second link lands somewhere
+     different from the first and only one of them works */
+  const back = encodeURIComponent(location.origin + location.pathname);
   try {
-    return await call("resend", { type: "email_change", email });
+    return await call(`resend?redirect_to=${back}`, { type: "email_change", email });
   } catch (err) {
     if (!/invalid|type/i.test(String(err.message))) throw err;
-    return call("resend", { type: "signup", email });
+    return call(`resend?redirect_to=${back}`, { type: "signup", email });
   }
 }
 
