@@ -663,9 +663,16 @@
 }
 .leavebar__ic { color: var(--ink-faint); flex-shrink: 0; line-height: 0; margin-top: 1px; }
 
+/* Aufan looked at the outlined version and said "still not red" — and
+   he was right: red text on a white pill reads as ordinary until you
+   are already reading it. A wash behind it makes the colour the first
+   thing you see, while staying outlined rather than filled so it never
+   competes with the primary action above it.
+   Measured: --brand-text on --danger-wash is 6.0:1 light, 6.34:1 dark. */
 .btn--leave {
-  background: var(--surface);
+  background: var(--danger-wash);
   color: var(--brand-text);
   border: 1.5px solid var(--brand-text);
-  box-shadow: var(--lift-1);
+  box-shadow: none;
 }
+.btn--leave:hover { filter: brightness(0.97); }

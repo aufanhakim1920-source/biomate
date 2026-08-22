@@ -53,6 +53,10 @@
 
   /* constants — identical in every theme, never inverted */
   --on-brand:    #FFFFFF;   /* text sitting ON a brand fill */
+  /* the wash behind a destructive control — red enough to read as a
+     warning at a glance, light enough that --brand-text stays at
+     6.0:1 on it and it never competes with a primary button */
+  --danger-wash: #FBE9E9;
   --on-photo:    #FFFFFF;   /* text sitting ON a photo scrim */
 
   /* ---- shape ---- */
@@ -132,6 +136,7 @@
        the swipe deck's yes, the active nav item, tiles and checkboxes,
        so getting it wrong here failed all of them at once in dark mode. */
     --on-brand:   #241D19;
+    --danger-wash: #3A211C;   /* 6.34:1 under --brand-text */
 
     --lift-1: 0 1px 2px rgba(0,0,0,.4);
     --lift-2: 0 2px 6px rgba(0,0,0,.45), 0 10px 24px rgba(0,0,0,.35);
@@ -159,6 +164,7 @@
 
   /* see the note in the prefers-color-scheme block above */
   --on-brand:   #241D19;
+  --danger-wash: #3A211C;
 
   --lift-1: 0 1px 2px rgba(0,0,0,.4);
   --lift-2: 0 2px 6px rgba(0,0,0,.45), 0 10px 24px rgba(0,0,0,.35);
