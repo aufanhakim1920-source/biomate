@@ -41,7 +41,17 @@
    genuinely hard to read against the map fill. */
 .ausmap__welcome {
   position: absolute;
-  left: 31%; top: 48%;
+  /* Aufan asked for it nearer the middle of the map. Not dead centre:
+     that sits it on the SA pin. 44/46 is the largest clear space in the
+     interior — Northern Territory above, Western Australia left, South
+     Australia below-right — and it reads as centred because the
+     mainland's own centre is about 50/43.
+
+     ⚠️ Moving this changes the colour behind it. The fill is a diagonal
+     gradient, so the ink has to be re-checked on every move: at 44/46
+     it sits at t≈0.45 of the ramp, giving 4.79:1 in light and 5.55:1
+     in dark against a 4.5 bar. */
+  left: 44%; top: 46%;
   transform: translate(-50%, -50%) rotate(-4deg);
   font-family: var(--font-display);
   font-style: italic;
