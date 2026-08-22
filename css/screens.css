@@ -553,6 +553,44 @@
 .photopick:focus-within .photopick__btn { outline: 2px solid var(--brand); outline-offset: 2px; }
 .photopick__note { color: var(--ink-soft); line-height: 1.5; }
 
+/* ---------------- who runs a hike ----------------
+   The leader is hikes.host_id; co-leader is a flag on the membership
+   row. The chip is the only place either is visible, so it has to read
+   at a glance without relying on colour alone — hence the words. */
+.personrow { display: flex; align-items: center; gap: 8px; }
+.personrow .row { min-width: 0; }
+
+.rolechip {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+/* --brand-ink carries --on-brand at 4.79:1 light and 4.88:1 dark */
+.rolechip--leader { background: var(--brand-ink); color: var(--on-brand); }
+/* the co-leader chip is quieter: a real distinction, not a competing one */
+.rolechip--coleader { background: var(--cream); color: var(--brand-text); border: 1px solid var(--hairline); }
+
+.rolebtn {
+  flex: 0 0 auto;
+  font-size: var(--t-xs);
+  padding: 8px 12px;
+  min-height: var(--tap);
+}
+@media (max-width: 420px) {
+  /* at this width the name and the button fight; the button wins the
+     second line rather than squeezing the name to three characters */
+  .personrow { flex-wrap: wrap; }
+  .rolebtn { margin-left: auto; }
+}
+
 /* ---------------- account ---------------- */
 
 /* the guest prompt on the profile — a row, not a banner. It is an

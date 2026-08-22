@@ -22,6 +22,7 @@ import { get, set, savePrefs } from "../store.js";
 import { go } from "../router.js";
 import { refreshAppbar, personBadge } from "../appbar.js";
 import { xpBurst, joinedHike } from "../fx.js";
+import { rank, searchHikes } from "../recommend.js";
 
 /* Cut on a word boundary. A raw slice(0, 130) left "for anyone who'"
    dangling mid-word, which reads as a rendering fault rather than as
@@ -53,11 +54,25 @@ export async function matchmaker() {
   const seen = new Set(swipes.map((s) => s.hike_id));
   const mine = new Set(members.filter((m) => m.user_id === me).map((m) => m.hike_id));
   const byId = Object.fromEntries(profiles.map((p) => [p.id, p]));
+  const profile = byId[me] || {};
   const active = get().filters;
 
-  let deck = hikes
-    .filter((h) => !seen.has(h.id) && !mine.has(h.id) && h.host_id !== me)
-    .filter((h) => !active.length || active.some((f) => (h.tags || []).includes(f)));
+  /* Who you have already walked with — the strongest signal in the
+     ranking, because the brief's thesis is that the company is the
+     point and the hike is only the occasion. */
+  const myHikeIds = new Set(members.filter((m) => m.user_id === me && m.status !== "left").map((m) => m.hike_id));
+  const friends = new Set(
+    members.filter((m) => myHikeIds.has(m.hike_id) && m.user_id !== me && m.status !== "left").map((m) => m.user_id)
+  );
+  const goingBy = {};
+  members.forEach((m) => {
+    if (m.status === "left") return;
+    (goingBy[m.hike_id] = goingBy[m.hike_id] || []).push(m.user_id);
+  });
+
+  let query = "";
+  let reasons = {};
+  let deck = [];
 
   const wrap = el("div");
 
@@ -93,6 +108,22 @@ export async function matchmaker() {
        · the chip is scrolled back into view. Moving it to the front of
          a row that is scrolled right would otherwise make it vanish —
          the exact problem this is meant to fix, inverted. */
+  /* Search sits above the filters because it answers a different
+     question: a filter says "what am I into", a search says "I already
+     know what I am looking for". */
+  const search = el("input", {
+    class: "field", type: "search", id: "deck-search",
+    placeholder: "Search by place, name or what it's about",
+    "aria-label": "Search hikes",
+  });
+  search.addEventListener("input", () => {
+    query = search.value;
+    rebuildDeck();
+    paint();
+    say(deck.length ? `${deck.length} hike${deck.length === 1 ? "" : "s"} match.` : "Nothing matches that.");
+  });
+  wrap.append(el("div", { class: "block", style: "padding-bottom:6px" }, [search]));
+
   const chips = el("div", { class: "chips", role: "group", "aria-label": "Filter hikes by interest" });
 
   const chipFor = new Map(
@@ -159,12 +190,23 @@ export async function matchmaker() {
   /* Recomputed in place rather than re-rendering the screen: a full
      re-render would drop focus, reset the scroll, and re-fetch
      everything to show the same cards in a different subset. */
+  /* ⚠️ RANKED, not just filtered. The deck used to arrive in whatever
+     order the database returned while the PRD claimed a "weighted
+     preference-overlap score" — so either the claim went or the code
+     arrived. See js/recommend.js: the score is never shown as a number,
+     only as the one-line reason behind it. */
   function rebuildDeck() {
     const on = get().filters;
-    deck = hikes
+    const pool = hikes
       .filter((h) => !seen.has(h.id) && !mine.has(h.id) && h.host_id !== me)
       .filter((h) => !on.length || on.some((f) => (h.tags || []).includes(f)));
+
+    const ranked = rank(searchHikes(pool, query), { me: profile, friends, goingBy });
+    reasons = {};
+    ranked.forEach(({ hike, reasons: r }) => { if (r.length) reasons[hike.id] = r[0]; });
+    deck = ranked.map((r) => r.hike);
   }
+  rebuildDeck();
 
   /* ---- the deck ---- */
   const deckEl = el("div", { class: "deck" });
@@ -193,9 +235,11 @@ export async function matchmaker() {
   function paint() {
     deckEl.replaceChildren();
     if (!deck.length) {
-      emptyWhy.textContent = get().filters.length
-        ? "Try clearing a filter — there may be more outside it."
-        : "New hikes appear as people post them. Why not host one?";
+      emptyWhy.textContent = query.trim()
+        ? `Nothing matches “${query.trim()}”. Try fewer words.`
+        : get().filters.length
+          ? "Try clearing a filter — there may be more outside it."
+          : "New hikes appear as people post them. Why not host one?";
       deckEl.append(empty);
       actions.querySelectorAll("button").forEach((b) => (b.disabled = true));
       say("No more hikes to look at.");
@@ -239,6 +283,12 @@ export async function matchmaker() {
         el("span", { class: "deck__badge", html: `${icon("alert", { size: 13 })}<span>${difficultyLabel(h.difficulty)}</span>` }),
         el("p", { class: "deck__bio", text: clip(h.description) }),
         el("div", { class: "deck__tags" }, (h.tags || []).slice(0, 3).map((t) => el("span", { class: "deck__tag", text: t }))),
+        /* why this card, in words — a percentage would be a black box,
+           and this app derives everything precisely so nothing has to
+           be taken on faith */
+        reasons[h.id]
+          ? el("span", { class: "deck__why", html: `${icon("check", { size: 13 })}<span>${reasons[h.id]}</span>` })
+          : null,
       ]),
       el("span", { class: "deck__verdict deck__verdict--yes", text: "JOIN" }),
       el("span", { class: "deck__verdict deck__verdict--nope", text: "NOPE" }),

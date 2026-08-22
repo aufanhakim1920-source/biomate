@@ -94,7 +94,11 @@ const NAV = [
    desktop rail there is nothing to collide with, and a button that
    appeared and vanished as you navigated would make the rail jump, so
    there it simply stays. */
-const CREATE_ON = new Set(["home", "matchmaker", "messages"]);
+/* ⚠️ NOT matchmaker. The swipe deck puts its own ✕ / ✓ buttons in
+   exactly this corner, and the floating button sat on top of the ✓ —
+   the primary action of the whole screen. Discover already reaches
+   hosting from its empty state, and the nav is one tap away. */
+const CREATE_ON = new Set(["home", "messages"]);
 const RAIL = window.matchMedia("(min-width: 900px)");
 let fab = null;
 

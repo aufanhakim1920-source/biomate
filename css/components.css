@@ -544,6 +544,27 @@
   .acctbtn:active { transform: none; }
 }
 
+/* the reason a card is in front of you, on the card itself */
+.deck__why {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  margin-top: 8px;
+  padding: 5px 10px;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, .18);
+  color: var(--on-photo);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  /* the scrim underneath varies with the photo, so the text carries its
+     own shadow rather than trusting the blur alone */
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .55);
+}
+.deck__why svg { flex-shrink: 0; }
+
 .chipstat {
   display: inline-flex;
   align-items: center;

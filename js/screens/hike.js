@@ -37,6 +37,16 @@ export async function hike({ id }) {
      "rejoin", not pitch the hike to them as if they had never seen it */
   const iLeft = !iAmIn && members.some((m) => m.user_id === meId && m.status === "left");
   const iAmHost = h.host_id === meId;
+  /* Roles: the LEADER is hikes.host_id — one per hike, so it cannot
+     disagree with itself. Co-leader is a flag on the membership row.
+     Both may edit the hike; only the leader may change who is which. */
+  const myRow = members.find((m) => m.user_id === meId && m.status !== "left");
+  const iAmCoLeader = Boolean(myRow && myRow.role === "coleader");
+  const canLead = iAmHost || iAmCoLeader;
+  const roleOf = (uid) =>
+    uid === h.host_id ? "leader"
+      : (members.find((m) => m.user_id === uid && m.status !== "left") || {}).role === "coleader" ? "coleader"
+      : "member";
   const host = byId[h.host_id] || { display_name: "someone" };
   const others = joined.filter((m) => m.user_id !== h.host_id);
 
@@ -96,21 +106,82 @@ export async function hike({ id }) {
     ])
   );
 
-  /* who's coming */
+  /* who's coming — with who runs it, and the leader's controls */
   if (joined.length) {
+    const ROLE_LABEL = { leader: "Leader", coleader: "Co-leader", member: "" };
+
+    const peopleList = el("div", { class: "stack", style: "padding:0" });
+
+    const drawPeople = () => {
+      /* leader first, then co-leaders, then everyone else — the list
+         answers "who runs this" before it answers "who else is coming" */
+      const order = { leader: 0, coleader: 1, member: 2 };
+      const sorted = [...joined].sort((a, b) => order[roleOf(a.user_id)] - order[roleOf(b.user_id)]);
+
+      peopleList.replaceChildren(...sorted.map((m) => {
+        const who = byId[m.user_id] || { display_name: "someone" };
+        const role = roleOf(m.user_id);
+
+        /* Only the leader changes roles, and never their own — a hike
+           without a leader is a hike nobody can fix. */
+        const canPromote = iAmHost && m.user_id !== h.host_id;
+        const next = role === "coleader" ? "member" : "coleader";
+
+        return el("div", { class: "personrow" }, [
+          el("button", {
+            class: "row", type: "button", style: "flex:1",
+            "aria-label": `Open ${who.display_name}'s profile`,
+            onclick: () => go(`person/${m.user_id}`),
+          }, [
+            avatar(who.avatar_url, who.display_name),
+            el("span", { class: "row__body" }, [
+              el("span", { class: "row__title" }, [
+                el("span", { text: who.display_name }),
+                role !== "member" ? el("span", { class: `rolechip rolechip--${role}`, text: ROLE_LABEL[role] }) : null,
+                personBadge(stats[m.user_id]),
+              ]),
+              el("span", { class: "row__sub", text: who.home_area || "" }),
+            ]),
+          ]),
+          canPromote
+            ? el("button", {
+                class: "btn btn--ghost rolebtn", type: "button",
+                text: role === "coleader" ? "Step down" : "Make co-leader",
+                "aria-label": role === "coleader"
+                  ? `Remove ${who.display_name} as co-leader`
+                  : `Make ${who.display_name} a co-leader`,
+                onclick: async (e) => {
+                  const b = e.currentTarget;
+                  b.disabled = true;
+                  try {
+                    await DB.update("hike_members", { hike_id: h.id, user_id: m.user_id }, { role: next });
+                    const row = members.find((x) => x.user_id === m.user_id && x.hike_id === h.id);
+                    if (row) row.role = next;
+                    drawPeople();
+                    toast(next === "coleader" ? `${who.display_name} is a co-leader` : `${who.display_name} stepped down`);
+                    say(next === "coleader"
+                      ? `${who.display_name} can now edit this hike.`
+                      : `${who.display_name} is a member again.`);
+                  } catch (err) {
+                    console.warn("[hike] role change failed", err);
+                    b.disabled = false;
+                    toast("Couldn't change that — try again");
+                  }
+                },
+              })
+            : null,
+        ]);
+      }));
+    };
+    drawPeople();
+
     wrap.append(
       el("section", { class: "block" }, [
         el("h2", { class: "h2", text: "Who's coming" }),
-        el("div", { class: "avstack" }, [
-          ...joined.slice(0, 5).map((m) =>
-            el("button", {
-              class: "avstack__btn",
-              type: "button",
-              "aria-label": `Open ${(byId[m.user_id] || {}).display_name || "this person"}'s profile`,
-              onclick: () => go(`person/${m.user_id}`),
-            }, [avatar((byId[m.user_id] || {}).avatar_url, (byId[m.user_id] || {}).display_name || "?")])),
-          joined.length > 5 ? el("span", { class: "avstack__more", text: `+${joined.length - 5} more` }) : null,
-        ]),
+        iAmHost
+          ? el("p", { class: "tiny", style: "padding-bottom:6px", text: "A co-leader can edit the hike and its photo. Only you can choose who." })
+          : null,
+        peopleList,
       ])
     );
   }
@@ -156,7 +227,7 @@ export async function hike({ id }) {
      The Start a group screen tells people they can do this here, so it
      has to be here. Host only: the photo is what everyone else swipes
      on, and it is not a thing any member should be able to replace. */
-  if (iAmHost) {
+  if (canLead) {
     const input = el("input", { class: "sr-only", type: "file", id: "hike-photo", accept: "image/*" });
     const status = el("p", { class: "tiny", style: "padding-top:8px" });
     const label = el("label", { class: "btn btn--ghost btn--block", for: "hike-photo" }, [

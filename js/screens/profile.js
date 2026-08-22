@@ -23,6 +23,7 @@ import { get } from "../store.js";
 import { setSound } from "../sound.js";
 import { go, back } from "../router.js";
 import { refreshAppbar } from "../appbar.js";
+import { prepare } from "../photo.js";
 import { levelFor, breakdown, TERRAIN_XP, LEVELS } from "../levels.js";
 import { catalogue, showcase, TIERS } from "../badges.js";
 
@@ -410,7 +411,46 @@ function detailsSection(me = {}, meId) {
     ));
   };
   drawPreview(); drawPicker();
-  box.append(el("div", { class: "avatarpick" }, [el("div", { class: "avatarpick__wrap" }, [preview, picker])]));
+
+  /* ⚠️ Your own photo can be a REAL photo, not just one of six stock
+     faces. The group photo already took an upload while your own face
+     did not, which is backwards — the group photo is what strangers
+     swipe on, but your face is what they see when deciding whether to
+     walk with you. Same pipeline: resized in the browser before it
+     goes anywhere, so a 4 MB phone photo does not become a 4 MB avatar
+     drawn at 34 pixels. */
+  const upInput = el("input", { class: "sr-only", type: "file", id: "avatar-file", accept: "image/*" });
+  const upStatus = el("p", { class: "tiny", style: "padding-top:8px" });
+  const upLabel = el("label", { class: "btn btn--ghost", for: "avatar-file", style: "margin-top:10px" }, [
+    el("span", { text: "Use my own photo" }),
+  ]);
+
+  upInput.addEventListener("change", async () => {
+    const file = upInput.files && upInput.files[0];
+    if (!file) return;
+    upStatus.textContent = "Reading the photo…";
+    try {
+      const out = await prepare(file);
+      upStatus.textContent = "Uploading…";
+      const url = await DB.upload(out.blob, `avatar-${meId || "me"}.jpg`);
+      avatarUrl = url;
+      drawPreview(); drawPicker();
+      await DB.saveProfile({ avatar_url: url });
+      await refreshAppbar();
+      upStatus.textContent = `That's you — ${Math.round(out.bytes / 1024)} KB.`;
+      toast("Photo updated");
+      say("Profile photo updated.");
+    } catch (err) {
+      console.warn("[profile] avatar upload failed", err);
+      upStatus.textContent = err.message || "That didn't upload. Try again.";
+      upInput.value = "";
+    }
+  });
+
+  box.append(el("div", { class: "avatarpick" }, [
+    el("div", { class: "avatarpick__wrap" }, [preview, picker]),
+    upLabel, upInput, upStatus,
+  ]));
 
   const name = el("input", { class: "field", id: "dn", type: "text", maxlength: "40", "aria-label": "Display name" });
   name.value = me.display_name || "";

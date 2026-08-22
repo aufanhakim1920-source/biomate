@@ -205,6 +205,13 @@ revoke execute on function public.touch_updated_at()     from public, anon, auth
 -- hikes         host, title, photo, region, difficulty, tags,
 --               proposed_date + confirmed_date, capacity, status
 -- hike_members  (hike_id, user_id) + status requested|joined|left
+--               + role member|coleader
+--
+-- Roles: the LEADER is hikes.host_id — exactly one per hike, so it can
+-- never disagree with itself. Co-leader is a flag on the membership row.
+-- private.can_lead(hike) = leader OR co-leader, and it gates UPDATE on
+-- `hikes`. Only the leader may change roles: the hike_members UPDATE
+-- policy is "your own row, or any row in a hike you host".
 -- swipes        (user_id, hike_id) + direction — a right swipe is an
 --               auditable join request, and swipes are PRIVATE so
 --               nobody can see who passed on them
