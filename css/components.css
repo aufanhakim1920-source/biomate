@@ -307,6 +307,46 @@
 }
 
 /* ---------------- bottom nav ---------------- */
+/* ---------------- start a group ----------------
+   Absolutely positioned INSIDE the nav, which is `position: fixed` on a
+   phone — so it anchors to the pill and cannot drift, and being out of
+   flow it does not disturb the nav's five equal columns. */
+.fab {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 12px);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-radius: var(--r-pill);
+  /* --brand-ink, not --brand: white on #C14E27 is 4.79:1 and clears AA,
+     white on #D2552A is 4.14:1 and does not */
+  background: var(--brand-ink);
+  color: var(--on-brand);
+  font-weight: 700;
+  font-size: var(--t-sm);
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: var(--lift-2);
+}
+.fab[hidden] { display: none; }
+.fab:hover { filter: brightness(1.06); }
+.fab:active { transform: scale(.96); }
+.fab__ic { display: grid; place-items: center; }
+
+/* On a narrow phone the label competes with the nav beneath it, so the
+   button collapses to its icon and keeps its name for assistive tech
+   through the anchor's aria-label. */
+@media (max-width: 380px) {
+  .fab__t { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .fab { padding: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fab:active { transform: none; }
+}
+
 .nav {
   position: fixed;
   left: 50%;

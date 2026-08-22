@@ -118,6 +118,15 @@
     --amber:      #F6B449;
     --forest:     #6FAE5C;
 
+    /* ⚠️ White does NOT go on the dark brand fill. #E0673A is lifted so
+       it reads on a dark ground, and that lift costs contrast the other
+       way: white on it is 3.40:1, under the 4.5 AA needs. The dark
+       ground itself gives 4.88:1, so text on a brand fill flips to it.
+       This is not one button — --on-brand carries every primary button,
+       the swipe deck's yes, the active nav item, tiles and checkboxes,
+       so getting it wrong here failed all of them at once in dark mode. */
+    --on-brand:   #241D19;
+
     --lift-1: 0 1px 2px rgba(0,0,0,.4);
     --lift-2: 0 2px 6px rgba(0,0,0,.45), 0 10px 24px rgba(0,0,0,.35);
     --lift-3: 0 6px 16px rgba(0,0,0,.5), 0 20px 44px rgba(0,0,0,.45);
@@ -141,6 +150,9 @@
   --brand-text: #F29068;
   --amber:      #F6B449;
   --forest:     #6FAE5C;
+
+  /* see the note in the prefers-color-scheme block above */
+  --on-brand:   #241D19;
 
   --lift-1: 0 1px 2px rgba(0,0,0,.4);
   --lift-2: 0 2px 6px rgba(0,0,0,.45), 0 10px 24px rgba(0,0,0,.35);

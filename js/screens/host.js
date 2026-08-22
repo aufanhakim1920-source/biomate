@@ -24,7 +24,12 @@ export async function host() {
   wrap.append(
     el("div", { class: "topbar topbar--left" }, [
       el("button", { class: "iconbtn iconbtn--ring", type: "button", "aria-label": "Back", html: icon("back", { size: 20 }), onclick: back }),
-      el("h1", { class: "display", style: "font-size:1.5rem", text: "Host a hike" }),
+      /* "Start a group", not "Host a hike" — it is the same act, and the
+         button that gets you here says group. Two names for one thing
+         is how a person ends up unsure whether they found the right
+         screen. The sub-line below still says what it means in
+         practice: you are posting a walk. */
+      el("h1", { class: "display", style: "font-size:1.5rem", text: "Start a group" }),
     ]),
     el("p", { class: "meta", style: "padding:0 20px 12px", text: "Post a walk and let people swipe onto it. You set the day; the group can move it later if everyone's free at a better time." })
   );

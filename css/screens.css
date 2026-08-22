@@ -609,6 +609,20 @@
     background: linear-gradient(180deg, var(--peach-0), var(--peach-1));
     box-shadow: none;
   }
+  /* in the rail it stops floating and becomes an ordinary item, first
+     in the column — where a desktop app puts "new" */
+  .fab {
+    position: static;
+    order: -1;
+    width: 100%;
+    justify-content: flex-start;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    border-radius: var(--r-md);
+    box-shadow: none;
+  }
+  .fab__t { position: static; width: auto; height: auto; clip-path: none; }
+
   .nav__item {
     height: auto;
     min-height: var(--tap);

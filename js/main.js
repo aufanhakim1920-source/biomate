@@ -8,7 +8,7 @@
    ES modules make the ordering explicit; the discipline still stands.
    ============================================================ */
 
-import { route, start, go } from "./router.js";
+import { route, start, go, parseHash } from "./router.js";
 import { DB } from "./db.js";
 import { el } from "./ui.js";
 import { icon } from "./icons.js";
@@ -49,7 +49,7 @@ route("shelf",      shelf,      { title: (p) => p.id || "Shelf",    nav: "map" }
 route("photoscan",  photoscan,  { title: () => "Photoscan",         nav: "camera" });
 route("trail",      trail,      { title: () => "On trail",          nav: "map" });
 route("walk",       walk,       { title: () => "A walk you did",    nav: "map" });
-route("host",       host,       { title: () => "Host a hike",       nav: "cards" });
+route("host",       host,       { title: () => "Start a group",     nav: "cards" });
 route("region",     region,     { title: (p) => p.id || "Region",   nav: "home" });
 route("welcome",    onboarding, { title: () => "Welcome",           nav: "" });
 route("settings",   settings,   { title: () => "Settings",          nav: "map" });
@@ -65,9 +65,64 @@ const NAV = [
   { key: "cards",  to: "matchmaker", icon: "cards",  label: "Discover" },
 ];
 
+/* ---------------- start a group ----------------
+   Hosting was reachable from exactly two places, and both were EMPTY
+   STATES: the button appeared when the swipe deck ran out, and when a
+   region had nothing in it. So the one action that makes the whole app
+   non-empty was only offered once there was nothing left to look at.
+
+   ⚠️ It is a CHILD of the nav, not a free-floating element, and that is
+   the whole trick. The nav is two different objects depending on width:
+   a fixed pill at the bottom of a phone, and a sticky left rail on a
+   desktop. A separately-positioned button has to guess which one it is
+   sitting next to, and the first version guessed wrong — pinned to the
+   bottom centre while the rail was over on the left. As a child it
+   simply inherits whichever the nav currently is:
+
+     phone    absolute inside the fixed pill, right-aligned, floating
+              just above it — the layered-edge device from the Scan and
+              Go template
+     desktop  a normal flex item, ordered first, so it becomes the
+              labelled primary action at the top of the rail
+
+   No entrance animation. The template pops it in, but that would fire
+   on every navigation, and ambient motion is a hard no here.
+
+   On a phone it is hidden on screens where it would collide with
+   something — the chat composer sits in exactly that corner. On a
+   desktop rail there is nothing to collide with, and a button that
+   appeared and vanished as you navigated would make the rail jump, so
+   there it simply stays. */
+const CREATE_ON = new Set(["home", "matchmaker", "messages"]);
+const RAIL = window.matchMedia("(min-width: 900px)");
+let fab = null;
+
+function buildFab() {
+  fab = el("a", {
+    class: "fab",
+    href: "#/host",
+    "aria-label": "Start a group — post a walk for people to join",
+  }, [
+    el("span", { class: "fab__ic", html: icon("plus", { size: 20 }), "aria-hidden": "true" }),
+    el("span", { class: "fab__t", text: "Start a group" }),
+  ]);
+  syncFab();
+  window.addEventListener("hashchange", syncFab);
+  RAIL.addEventListener("change", syncFab);
+  return fab;
+}
+
+/* `hidden` rather than a CSS class, so it leaves the accessibility tree
+   too — a control a screen reader can still reach on a screen where it
+   does not apply is worse than no control at all. */
+function syncFab() {
+  if (!fab) return;
+  fab.hidden = !(RAIL.matches || CREATE_ON.has(parseHash().name));
+}
+
 function buildNav() {
   const nav = el("nav", { class: "nav", "aria-label": "Main" },
-    NAV.map((n) =>
+    [buildFab()].concat(NAV.map((n) =>
       el("a", {
         class: "nav__item",
         href: `#/${n.to}`,
@@ -77,7 +132,7 @@ function buildNav() {
         el("span", { html: icon(n.icon, { size: 26 }), "aria-hidden": "true" }),
         el("span", { class: "sr-only", text: n.label }),
       ])
-    )
+    ))
   );
   document.getElementById("app").append(nav);
 }
