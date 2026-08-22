@@ -6,13 +6,35 @@
 > with a reason you can defend. Keep a record of what you changed from the
 > original and why. This is the heart of your submission."*
 
-Blueprint: the Biomate Product-thon Figma (`NNSWKzLDoVGtwtM7D0o25u`) and the
-written brief that came with it.
+## Blueprint attribution
 
-> ⚠️ **Blueprint attribution — TO FILL IN.** The Product-thon team whose design
-> this was built from must be credited here and on the submission. We have the
-> file, not the authors' names; this line is a placeholder until the team
-> confirms them, and it must not ship blank.
+**Built from the Biomate blueprint by the Product-thon team _Fantastic Four_.**
+File: *Product-Thon Fantastic Four* · prototype *"Elyse's Brain Scramble"*
+(`ZSEmPDjT9gu8RNzF1nleqW`), exported 2026-08-17.
+
+Their design is the reason this product has a shape at all. Where we changed
+it, the reasons are below; where we kept it, that is said too.
+
+---
+
+> ⚠️ **THIS LOG IS BEING REBASELINED.** Entries below were written against
+> `NNSWKzLDoVGtwtM7D0o25u`, which is **our own team's later Figma**, not the
+> inherited blueprint. Some entries recorded here as *our* divergences may
+> actually be **Fantastic Four's design decisions that our team already
+> adopted** — which belong under fidelity, not divergence. The rebaseline is
+> in progress and needs a readable copy of the original file.
+>
+> Confirmed against the original so far:
+> - **The blueprint is dark-themed.** We ship light-first with dark support.
+> - **Womindjeka! sits at the centre of the map** in the original — so moving
+>   it there was *restoring blueprint fidelity*, not a divergence.
+> - **The blueprint's vocabulary is "events" and "invites"** — *"Your Invite:
+>   Anyone else from Alice Springs…"*, *"5+ people have responded to your
+>   invite"*, *"New events happening near Melbourne"*. We shipped "hikes" and
+>   "hosting". Whether that is a rename or a different model is the single most
+>   important thing left to check.
+> - The home structure — mark and wordmark, greeting, watercolour Australia
+>   with state pills, then a feed of activity cards — we match closely.
 
 Every entry is **what the blueprint said → what we shipped → why**. Where we
 kept the blueprint we say so, because fidelity is scored too and "we changed

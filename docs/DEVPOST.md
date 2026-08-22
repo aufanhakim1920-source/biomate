@@ -11,10 +11,11 @@ Paste-ready. Devpost's standard headings are used so it drops straight in.
 
 ---
 
-## ⚠️ Blueprint attribution
+## Blueprint attribution
 
-> Built from the Biomate blueprint by the Product-thon team **[NAME — TO FILL
-> IN]**. Track 3 requires the design team to be credited on the submission.
+> **Built from the Biomate blueprint by the Product-thon team _Fantastic Four_.**
+> Their design gave this product its shape — the watercolour Australia, the
+> shelf, the card stack, and the idea that the people are the point.
 
 ---
 
