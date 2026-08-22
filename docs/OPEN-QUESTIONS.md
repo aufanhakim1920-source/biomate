@@ -1,82 +1,58 @@
-# Open questions
+# Questions we had, and how they were answered
 
-Answered ones move to the table at the bottom. Nothing here blocks you from
-filling in `brief/` — answer them whenever, or let the brief answer them for
-me.
+Kept as a record rather than deleted. Track 3 scores whether a team can defend
+its decisions, and this is where several of them were actually made — including
+two the brief and the design blueprint disagreed about.
 
-## Blocking (I can't create the remote things without these)
+**Nothing here is still open.**
 
-1. **What's the project called?** Needed for three things at once: the folder
-   name, the GitHub repo, and the Supabase project. All three are renameable
-   afterwards but the repo URL is the one people will already have been sent,
-   so it's worth getting right the first time.
-2. **A short slug** for it — lowercase, hyphens, e.g. `peak-and-pan`. Used
-   for localStorage keys and the repo name. I'll derive one from the name if
-   you don't care.
+---
 
-## Answered by the brief (2026-08-21)
-
-The project overview landed — `brief/notes/01-project-overview.md`. It settled
-the biggest one:
-
-- **Data is shared between users, and matching is on GROUPS not people.** You
-  swipe through hiking *groups*; a match drops you into that group's chat. So a
-  group is a first-class row, chat is per-group, availability is collected across
-  N members, and "unique people you hiked with" is computable from participation.
-
-Three milestones, in order: **1** swipe matching + preferences → **2** group chat
-with a LettuceMeet-style availability page and an agenda page → **3** a
-Strava/UltraTrails-style trail recorder (distance, duration, unique people,
-stats).
-
-Gamification (streak, levels, badges) is explicitly **secondary** to the social
-features.
-
-## ✅ Resolved 2026-08-22, after reading the Figma
+## Settled before building
 
 | Question | Answer |
 |---|---|
-| Who creates a group? | **Nobody — there are no standing groups.** A host creates a *hike*, and the hike is what you swipe on. Swiping right requests to join and drops you in that hike's chat. |
-| Person, group, or event on the card? | **A hosted hike.** Reconciles the brief, Aufan's "group photo", and the Figma's host/RSVP flow. |
-| Availability picker? | ⚠️ **REVERSED 2026-08-22 — it is IN.** I dropped it on the Figma's evidence; the brief and whiteboard both ask for it, and they outrank the Figma. Host *proposes* a date (Figma structure), the group paints availability in the chat (brief Milestone 2), host confirms or moves to the best overlap. |
-| Phone or desktop? | **Phone.** Figma frames are 402×874 (iPhone 16/17 Pro). |
+| What is it called? | **Biomate** — slug `biomate`, used for the repo, the Supabase project and the `localStorage` keys |
+| Identity model | Supabase **anonymous auth** — a real `auth.uid()` from a signed JWT, no signup screen |
+| Stack | Vanilla HTML/CSS/JS, ES modules, no build step |
+| Hosting | GitHub Pages throughout, so the link people are sent is never stale |
+| Phone or desktop? | **Phone-width first.** The blueprint's frames are phone-sized and every layout decision follows from that; it stays usable up to desktop |
+| Public or private repo? | **Public** — a hackathon submission has to be readable |
+| Anything involving real money? | **No.** Nothing in the app touches a payment provider |
 
-Still open: whether the trail recorder uses real GPS, and the deadline.
+## The three that actually changed the product
 
-**Gender/pronouns, partly answered 2026-08-22:** onboarding step 4/5 asks *"What
-are your pronouns?"* with a dropdown — pronouns, not gender. That reads as
-identity/display rather than a hard filter. Still worth confirming whether
-anyone can filter *on* it or whether it is only shown.
+**Who creates a group?** The brief said users swipe on *groups* but never said
+where groups come from — either a user creates a hike and others swipe onto it,
+or groups form automatically from matching preferences. This was the biggest
+schema fork in the project.
 
-## New, from the brief
+→ **A card is a hike someone is hosting.** The event *is* the group. It removed
+an entire database table, deleted the "what is this group for between hikes"
+problem, and made "how many unique people have you hiked with" fall straight out
+of co-membership. Recorded as **A1** in the divergence log.
 
-8. **Who creates a group?** The brief says users swipe on groups but not where
-   groups come from. Two very different products: (a) a user creates a hike and
-   others swipe onto it, or (b) groups form automatically from people whose
-   preferences match. This is the single biggest remaining schema fork.
-9. **Does the trail recorder need real GPS?** `navigator.geolocation` works in a
-   browser but needs HTTPS and only tracks while the tab is open — a phone
-   screen-locking mid-hike stops it. If the demo needs a convincing recording, a
-   replayed sample track is honest and reliable; live GPS is neither on a laptop
-   in a presentation room.
-10. **Is gender a filter, a safety feature, or both?** It is in the preference
-    list. Worth being deliberate about, since "match me with women only" and
-    "show me people's gender" are different features with different implications.
+**Does the trail recorder need real GPS?** A replayed sample track would have
+been reliable in a presentation room; `navigator.geolocation` needs HTTPS and
+stops when a phone locks.
 
-## Not blocking, but they change what I build
+→ **Real GPS.** The recorder uses the device's actual position, with accuracy,
+speed and movement gating plus an iterative Douglas–Peucker simplifier so a
+four-hour walk neither crashes nor becomes a scribble. Where the browser cannot
+deliver — a locked phone stops recording — **the line breaks** rather than
+drawing a straight guess across ground that may not have been walked. Faking it
+would have contradicted the standard the rest of the app is held to.
 
-3. **Phone or desktop?** Peak & Pan was phone-width and every layout decision
-   followed from that. If the mocks are wide I'll assume desktop-first.
-4. **Repo public or private?** Peak & Pan went public for the hackathon so
-   links could be sent. Private is the safer default and flips in one command.
-5. **Anything with real money in it?** If so it's a separate conversation —
-   Peak & Pan's paywall deliberately contacts no payment provider and says so
-   on screen, and I'd want to do the same here rather than fake it quietly.
+**Is gender a filter, a safety feature, or both?** The brief listed gender among
+the matching preferences. The design blueprint's onboarding asked for
+**pronouns** instead.
 
-## Decided
+→ **Pronouns, shown on your profile, never used to filter who you see.** The
+design quietly improved on the brief and the improvement was kept: pronouns are
+identity to display, whereas gender as a filter sorts strangers by a category
+the product has no reason to sort by. Recorded as **A3** in the divergence log.
 
-| Question | Answer | Date |
-|---|---|---|
-| Identity model | Supabase anonymous auth — real `auth.uid()`, no signup screen | 2026-08-21 |
-| Stack | Vanilla HTML/CSS/JS, no build step | 2026-08-21 |
-| Hosting | GitHub now; Netlify at presentation time for a live link | 2026-08-21 |
+---
+
+See [DIVERGENCE-LOG.md](DIVERGENCE-LOG.md) for every decision that departed from
+the inherited blueprint, and why.

@@ -55,7 +55,7 @@ Describes the current screen and the focused element.
 TTS and a screen reader talking at once is worse than either alone. So the same
 description that gets spoken is also written into a polite `aria-live` region —
 **real assistive tech reads the text, TTS serves everyone else.** This was the
-single most valuable accessibility decision in Peak & Pan.
+single most valuable accessibility decision in an earlier project.
 
 ### 3. ⭐ The swipe deck must be fully operable without swiping
 
@@ -125,7 +125,7 @@ verified with that flag; test it another way.
 - **Visible focus rings** — never `outline: none` without a replacement.
 - **Labels on every control**, including icon-only buttons.
 - **`prefers-color-scheme` dark mode.** ⚠️ Before adding it, **audit every token
-  for dual use.** Peak & Pan's `--bg2` was both a cream background *and* cream
+  for dual use.** an earlier project's `--bg2` was both a cream background *and* cream
   text on purple; in dark mode the text inverted to the same colour as its own
   surface and vanished. Split dual-role tokens into constants that never move
   *before* writing the second theme, not after.

@@ -16,7 +16,7 @@ wrong once.
 Because the GitHub Pages demo is live *throughout* the build, how keys reach the
 browser is settled now, not at deploy time.
 
-**Peak & Pan kept its key off the public demo** — `index.html` only loaded
+**an earlier project kept its key off the public demo** — `index.html` only loaded
 `config.local.js` when `location.hostname` was localhost, so the hosted page never
 even requested it (no 404 in front of judges), and it used `document.write` for
 that load because it is synchronous, where an injected `<script>` would race
@@ -32,7 +32,7 @@ an app talking to itself.**
 demo run live.** This is safe *by design* and is Supabase's documented model —
 the publishable key identifies the project and grants nothing; Row Level Security
 plus `auth.uid()` is what protects the data. It is only safe because identity was
-changed to real anonymous auth; it would **not** have been safe with Peak & Pan's
+changed to real anonymous auth; it would **not** have been safe with an earlier project's
 client-set `device_id` header, which is exactly why that project kept its key
 private.
 
@@ -164,7 +164,7 @@ keeping the build a plain static folder, which it already is.
 
 ## Standing rules that override convenience
 
-- **Nothing gets built until Aufan says `gas`.**
+- **Nothing gets built until Aufan asks for it.**
 - **No deploying reference-driven learning builds** — but Biomate is a real
   project, not a learning build, so Netlify is expected here.
 - **Never write a real secret into a vault note, a memory file, or chat.** Only
