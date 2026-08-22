@@ -24,8 +24,8 @@ The default should never win by accident. That's the whole anti-slop
 mechanism.
 
 **What's in the library today:** 20 raw references in
-`C:\Coding\Learning design claude experience\_references-inbox\` and 6
-distilled templates in the vault under `Claude Second Brain\Design Templates\`
+the personal references inbox, and 6 distilled templates in the personal
+knowledge base under `Design Templates/`
 — Press Sheet Brutalist Editorial, Pixel Bloom Cobalt, Cardboard 3D Object
 Stage, Generative Canvas Studio, the Web Elements Catalogue, and the Design
 Reference Library index.

@@ -85,6 +85,6 @@ Before anything reaches `main`:
 
 ## Agents
 
-`.claude/agents/qa-verifier.md` — verification only. It looks at the running
+A dedicated QA reviewer — verification only. It looks at the running
 app, measures instead of eyeballing, and states plainly what it could not
 check. Use it before a merge, not after.
