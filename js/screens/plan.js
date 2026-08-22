@@ -124,7 +124,10 @@ export async function plan({ id }) {
 
   wrap.append(el("div", { class: "tiles" }, [
     tile("calendar", "Calendar Availability", () => go(`when/${h.id}`)),
-    tile("pin", "Location", () => go(`hike/${h.id}`)),
+    /* v7 added a real Location screen; this tile still pointed at the
+       hike page, so the identical-looking tile in planTiles() and this
+       one went to different places. */
+    tile("pin", "Location", () => go(`location/${h.id}`)),
     tile("gear", "Gear", () => go(`gear/${h.id}`)),
     tile(null, "Save", save, true),
   ]));
@@ -269,6 +272,9 @@ export function planTiles(h, current) {
     t("calendar", "Calendar Availability", "when"),
     t("pin", "Location", "location"),
     t("gear", "Gear", "gear"),
-    el("button", { class: "tile tile--primary", type: "button", text: "Save", onclick: () => go(`plan/${h.id}`) }),
+    /* NOT "Save" — it never saved anything, it navigated. Each planner
+       screen saves its own thing with its own button; this tile is the
+       way back to the plan itself, so it says that. */
+    el("button", { class: "tile tile--primary", type: "button", text: "The plan", onclick: () => go(`plan/${h.id}`) }),
   ]);
 }

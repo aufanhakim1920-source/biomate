@@ -205,9 +205,15 @@ export function setSound(on) {
   savePrefs();
   if (!on) return Promise.resolve(installed());
 
-  const ready = preload();
   unlocked = true;
-  play("message");
+  /* ⚠️ await the preload before the confirmation cue. Playing it
+     immediately meant the very FIRST switch-on hit the readyState === 0
+     guard and made no sound — silent on the one occasion the cue exists
+     for, and audible on every later toggle, which is exactly backwards.
+     Toggling off before it resolves is respected: soundOn() is checked
+     again on the other side. */
+  const ready = preload();
+  ready.then(() => { if (soundOn()) play("message"); }).catch(() => {});
   return ready;
 }
 

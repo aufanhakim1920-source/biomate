@@ -21,7 +21,7 @@ import { el, toast } from "../ui.js";
 import { icon } from "../icons.js";
 import { say } from "../a11y.js";
 import { back, go } from "../router.js";
-import { planTiles } from "./plan.js";
+import { planHeader, planTiles } from "./plan.js";
 
 const START_HOUR = 6;
 const END_HOUR = 20;
@@ -89,12 +89,11 @@ export async function when({ id }) {
 
   const wrap = el("div");
 
-  wrap.append(
-    el("div", { class: "topbar topbar--left" }, [
-      el("button", { class: "iconbtn iconbtn--ring", type: "button", "aria-label": "Back", html: icon("back", { size: 20 }), onclick: back }),
-      el("h1", { class: "display", style: "font-size:1.5rem", text: "When are you free?" }),
-    ])
-  );
+  /* the same header Location and Gear use — back, the group's faces,
+     the screen's name. Calendar was building its own, so one of the
+     three planner screens looked like a different app: no avatars, a
+     different title style, a different back button. */
+  wrap.append(planHeader(h, members, profiles, "When are you free?"));
 
   /* ---- who has answered ---- */
   const waiting = joined.filter((m) => !responded.has(m.user_id));

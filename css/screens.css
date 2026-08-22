@@ -670,6 +670,14 @@
     max-width: 1120px;
     display: grid;
     grid-template-columns: 232px minmax(0, 1fr);
+    /* ⚠️ Without this the two implicit rows are both `auto`, so the
+       min-height surplus below is SHARED between the app bar and the
+       content — and the emptier the screen, the taller the bar. The
+       account screen measured a 398px app bar at 1280 and 498px at
+       2000, against a natural 61px. Worst on the newest, sparsest
+       screens and on a wide monitor. `auto 1fr` gives the slack to the
+       content, where it belongs. */
+    grid-template-rows: auto 1fr;
     background: var(--bg);
     box-shadow: var(--lift-3);
     min-height: 100dvh;
