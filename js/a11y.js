@@ -33,6 +33,40 @@ export function mount() {
     document.body.appendChild(liveRegion);
   }
   applyTheme();
+  mountSkipLink();
+}
+
+/* ⚠️ The skip link was navigating instead of skipping.
+
+   `<a href="#screen">` looks like the textbook skip link, and in an
+   ordinary page it is. This app uses a HASH ROUTER, and the router
+   parses `location.hash` as a route name — with the leading slash
+   optional. So "#screen" resolved to a route called "screen", found
+   nothing, and fell back to Home.
+
+   Net effect: the first control a keyboard user reaches on every
+   screen threw them back to Home. In an app whose accessibility is
+   supposed to be design rather than compliance, the one control that
+   exists purely for keyboard users was the one that did not work.
+
+   So it moves focus itself and never touches the hash. `tabindex="-1"`
+   is set at click time rather than in the markup because the router
+   already sets and relies on it, and two places quietly fighting over
+   the same attribute is how this stops working again later. */
+function mountSkipLink() {
+  const link = document.querySelector(".skip-link");
+  const screen = document.getElementById("screen");
+  if (!link || !screen) return;
+
+  link.addEventListener("click", (e) => {
+    e.preventDefault();
+    screen.setAttribute("tabindex", "-1");
+    screen.focus();
+    /* scroll after focusing: focus() on a -1 element does not always
+       bring it into view, and the appbar is sticky over the top of it */
+    screen.scrollIntoView({ block: "start", behavior: reducedMotion() ? "auto" : "smooth" });
+    say("Skipped to the main content.");
+  });
 }
 
 /**

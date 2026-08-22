@@ -48,6 +48,23 @@ let rendering = false;
 
 export async function render() {
   if (rendering) return;
+
+  /* ⚠️ A hash that is not a route must not be treated as one.
+
+     Routes are always written `#/name` — go() prefixes the slash and
+     every href in the app does too. But parseHash's leading slash is
+     optional, so a plain in-page anchor like `#screen` resolved to a
+     route called "screen", found nothing, and fell back to Home.
+
+     That is exactly what the skip link did: the first control a
+     keyboard user reaches on every screen threw them back to Home.
+     a11y.js now handles that link directly, but this guard is the
+     reason it cannot happen again the next time somebody adds an
+     ordinary anchor. Ignoring it leaves the current screen alone,
+     which is what an in-page anchor should do. */
+  const raw = location.hash || "";
+  if (raw && !raw.startsWith("#/")) { rendering = false; return; }
+
   rendering = true;
 
   const { name, params } = parseHash();
