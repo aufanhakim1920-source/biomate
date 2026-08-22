@@ -896,65 +896,144 @@
 .chipstat--level.is-bumped { animation: fxbump .45s var(--ease-spring); }
 @keyframes fxbump { 0%,100% { transform: none; } 40% { transform: scale(1.14); } }
 
-.fx-level {
-  position: fixed;
-  left: 50%; top: 34%;
-  transform: translate(-50%, -50%);
-  z-index: 300;
-  pointer-events: none;
-  display: grid;
-  justify-items: center;
-  gap: 4px;
-  padding: 22px 38px;
-  border-radius: var(--r-xl);
-  background: linear-gradient(150deg, var(--brand-ink), var(--brand-text));
-  color: #fff;
-  box-shadow: var(--lift-3);
-  animation: fxpop 2.4s var(--ease-out) forwards;
-}
-.fx-level__lv { font-weight: 900; letter-spacing: .16em; font-size: var(--t-sm); opacity: .85; }
-.fx-level__name { font-family: var(--font-display); font-style: italic; font-weight: 900; font-size: 1.7rem; }
-@keyframes fxpop {
-  0%   { opacity: 0; transform: translate(-50%,-50%) scale(.8); }
-  12%  { opacity: 1; transform: translate(-50%,-50%) scale(1.03); }
-  22%  { transform: translate(-50%,-50%) scale(1); }
-  82%  { opacity: 1; }
-  100% { opacity: 0; transform: translate(-50%,-56%) scale(.98); }
-}
+/* ---------------- the moment ----------------
+   One component for every celebration: joining, badges, levels,
+   a saved walk, a streak. Before this there were three different
+   grammars — a big centred card, a bottom pill and a grey toast —
+   and the card and the pill could occupy the same 30 pixels at the
+   same time.
 
-.fx-badge {
+   The stack is what fixes the overlap. Panels queue upward from
+   above the nav instead of landing on each other, and because it is
+   a real grid the browser does the spacing rather than a pile of
+   setTimeouts guessing at it.
+
+   ⚠️ pointer-events lives on the CHILDREN, not the container. A
+   full-width fixed overlay with pointer-events:auto would eat every
+   click in the bottom third of the screen for as long as a panel is
+   up — including the nav directly underneath it. */
+.fx-stack {
   position: fixed;
-  left: 50%; bottom: calc(var(--nav-h) + var(--safe-b) + 30px);
+  left: 50%;
+  bottom: calc(var(--nav-h) + var(--safe-b) + 30px);
   transform: translateX(-50%);
   z-index: 300;
+  display: grid;
+  gap: 10px;
+  width: min(400px, calc(100vw - 32px));
   pointer-events: none;
+}
+
+.fx-moment {
+  pointer-events: auto;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 18px;
-  border-radius: var(--r-pill);
+  padding: 12px 12px 12px 14px;
+  border-radius: var(--r-lg);
   background: var(--ink);
   color: var(--bg);
   box-shadow: var(--lift-3);
-  animation: fxslide 2.8s var(--ease-out) forwards;
+  animation: fxmoment var(--life, 3200ms) var(--ease-out) forwards;
 }
-.fx-badge__ring {
-  width: 26px; height: 26px;
+
+/* Reduced motion keeps the panel and drops the movement. Explicit
+   `animation: none` rather than relying on the global 0.01ms rule in
+   base.css — that rule makes an animation FINISH instantly, and this
+   one finishes at opacity 0, so the panel would flash and vanish for
+   exactly the people who need longest to read it. */
+.fx-moment.is-still { animation: none; opacity: 1; transform: none; }
+
+@keyframes fxmoment {
+  0%   { opacity: 0; transform: translateY(14px) scale(.98); }
+  6%   { opacity: 1; transform: none; }
+  92%  { opacity: 1; transform: none; }
+  100% { opacity: 0; transform: translateY(-6px); }
+}
+
+.fx-moment__body { flex: 1; min-width: 0; }
+.fx-moment__k {
+  display: block;
+  font-size: var(--t-xs);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  opacity: .72;
+}
+.fx-moment__h {
+  display: block;
+  font-weight: 800;
+  font-size: var(--t-md);
+  /* one line, because a five-word hike title must not push the
+     dismiss button off a 375px panel */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fx-moment__s {
+  display: block;
+  font-size: var(--t-xs);
+  opacity: .72;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fx-moment__art {
+  display: grid;
+  place-items: center;
+  width: 38px; height: 38px;
   border-radius: 50%;
-  border: 3px solid #B87333;
+  background: rgba(255, 255, 255, .14);
   flex-shrink: 0;
 }
-.fx-badge__ring[data-tier="silver"] { border-color: #9AA3AB; }
-.fx-badge__ring[data-tier="gold"]   { border-color: #D4A017; }
-.fx-badge__t { display: block; font-size: var(--t-xs); opacity: .7; }
-.fx-badge__n { display: block; font-weight: 800; font-size: var(--t-sm); }
-@keyframes fxslide {
-  0%   { opacity: 0; transform: translate(-50%, 16px); }
-  10%  { opacity: 1; transform: translate(-50%, 0); }
-  85%  { opacity: 1; transform: translate(-50%, 0); }
-  100% { opacity: 0; transform: translate(-50%, -8px); }
+.fx-moment__glyph { display: grid; place-items: center; }
+.fx-moment__lv { font-weight: 900; font-size: 1.05rem; }
+.fx-moment__ring {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 3px solid #B87333;
 }
-@media (min-width: 900px) { .fx-badge { bottom: 30px; } }
+.fx-moment__ring[data-tier="silver"] { border-color: #9AA3AB; }
+.fx-moment__ring[data-tier="gold"]   { border-color: #D4A017; }
+
+/* The dismiss control. 34px rather than the 44px tap minimum is a
+   considered exception: it sits inside a panel that also dismisses
+   itself on any click and after a few seconds on its own, so it is
+   a convenience rather than the only way out — and at 44 it
+   dominated a 60px-tall panel. */
+.fx-moment__x {
+  width: 34px; height: 34px;
+  flex-shrink: 0;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  color: inherit;
+  opacity: .7;
+}
+.fx-moment__x:hover { opacity: 1; background: rgba(255, 255, 255, .14); }
+.fx-moment__x:focus-visible { opacity: 1; background: rgba(255, 255, 255, .2); }
+
+/* Tones. Only the fill changes — the shape, spacing and behaviour
+   are identical, which is the whole point of collapsing three
+   components into one. */
+.fx-moment--level {
+  background: linear-gradient(150deg, var(--brand-ink), var(--brand-text));
+  color: #fff;
+}
+.fx-moment--level .fx-moment__h {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  font-size: 1.25rem;
+}
+.fx-moment--join   { background: linear-gradient(150deg, #2E6B2E, #1F4C20); color: #fff; }
+.fx-moment--walk   { background: linear-gradient(150deg, #2F5D7C, #21435A); color: #fff; }
+.fx-moment--streak { background: linear-gradient(150deg, #B5651F, #8A4714); color: #fff; }
+
+/* Above 900px the nav is a left rail, so there is nothing at the
+   bottom of the screen to clear. */
+@media (min-width: 900px) {
+  .fx-stack { bottom: 30px; }
+}
 
 /* ---------------- the badge collection ----------------
    Locked badges stay visible and show their progress — a collection
@@ -1049,4 +1128,44 @@
   .home__right .missions { margin: 0 var(--pad) 0 0; }
   .home__right .fadestack { grid-template-columns: minmax(0, 1fr); padding-right: var(--pad); padding-left: 0; }
   .home__right .stack { grid-template-columns: minmax(0, 1fr); padding-right: var(--pad); padding-left: 0; }
+}
+
+/* ---------------- what you missed ----------------
+   The derived inbox (js/notify.js). Rows reuse `.row` wholesale —
+   the same peach card as a conversation, because a notification IS
+   a pointer at a conversation, and giving it its own look would have
+   invented a second visual language for the same thing.
+
+   The only additions are a kind icon, a timestamp, and one
+   colour-coded left edge. ⚠️ That edge is never the only signal: the
+   kind is also in the icon, in the wording of the title, and in the
+   row's accessible name. Colour alone would break the same rule the
+   difficulty labels already follow. */
+.notif__ic {
+  display: grid;
+  place-items: center;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--brand-text);
+  flex-shrink: 0;
+}
+.notif__when { flex-shrink: 0; align-self: flex-start; padding-top: 2px; }
+
+.notif { border-left: 4px solid var(--hairline); }
+.notif--message   { border-left-color: var(--brand); }
+.notif--join      { border-left-color: var(--forest); }
+.notif--confirmed { border-left-color: var(--amber); }
+.notif--join .notif__ic { color: var(--forest); }
+
+/* The subtitle carries a whole message body, so it needs room a
+   conversation row does not. Two lines, then ellipsis — at one line
+   every row read "someone: we just…" and told you nothing. */
+.notif .row__sub {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  overflow: hidden;
 }
