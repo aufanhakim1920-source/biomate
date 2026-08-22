@@ -124,6 +124,14 @@ a { color: var(--brand-text); }
   padding-bottom: calc(var(--nav-h) + var(--safe-b) + 24px);
 }
 
+/* The floating "Start a group" button sits above the nav pill and over
+   the page, so the content needs room to scroll out from under it.
+   Only in pill mode: in the desktop rail the button lives inside the
+   nav column and overlaps nothing. */
+@media (max-width: 899px) {
+  #app.has-fab #screen { padding-bottom: calc(var(--nav-h) + var(--safe-b) + 88px); }
+}
+
 /* The router focuses #screen on every navigation so a keyboard user
    lands in the new content and a screen reader announces it. That is
    PROGRAMMATIC focus though, and painting a 3px ring around the entire

@@ -118,6 +118,12 @@ function buildFab() {
 function syncFab() {
   if (!fab) return;
   fab.hidden = !(RAIL.matches || CREATE_ON.has(parseHash().name));
+  /* A floating button floats OVER the content, so the last thing on a
+     page ends up underneath it and cannot be scrolled clear. Caught by
+     looking at a screenshot, not by measuring — every geometry check
+     passed while the button sat on top of the missions list. The class
+     lets the layout reserve the space, and only while it is showing. */
+  document.getElementById("app").classList.toggle("has-fab", !fab.hidden);
 }
 
 function buildNav() {

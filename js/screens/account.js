@@ -36,6 +36,7 @@ import { el, toast } from "../ui.js";
 import { icon } from "../icons.js";
 import { say } from "../a11y.js";
 import * as Auth from "../auth.js";
+import { refreshAppbar } from "../appbar.js";
 import { go, back } from "../router.js";
 
 const MIN_PASSWORD = 8;
@@ -133,6 +134,10 @@ export async function account() {
           onclick: async (e) => {
             e.currentTarget.disabled = true;
             await Auth.signOut();
+            /* the bar shows who you are, so it has to be told — and
+               after a sign-out the XP behind it belongs to a different
+               user, which refreshAppbar re-reads anyway */
+            await refreshAppbar();
             toast("Signed out — browsing as a guest");
             say("Signed out. You are browsing as a guest again.");
             go("home");
@@ -231,6 +236,7 @@ export async function account() {
         try {
           const res = await Auth.createAccount(email, pass);
           if (res.confirmed) {
+            await refreshAppbar();
             toast("Account created");
             say("Account created. Everything you have done is now saved to it.");
             go("account");
@@ -292,6 +298,7 @@ export async function account() {
         submit.textContent = "Signing in…";
         try {
           await Auth.signIn(email, pass);
+          await refreshAppbar();
           toast("Signed in");
           say("Signed in.");
           go("home");
@@ -406,6 +413,7 @@ export async function account() {
         try {
           await Auth.setPassword(pass);
           sessionStorage.removeItem("biomate/recovery");
+          await refreshAppbar();
           toast("Password changed");
           say("Password changed. You're signed in.");
           go("home");

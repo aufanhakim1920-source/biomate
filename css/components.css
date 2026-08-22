@@ -435,6 +435,48 @@
 }
 .appbar__dot--warn { background: var(--amber); }
 
+/* ---------------- the account control in the top bar ----------------
+   Filled, where the level and streak chips are outlined, so it reads as
+   the one ACTION up there rather than a third status pill. */
+.acctbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: var(--r-pill);
+  background: var(--brand-ink);
+  color: var(--on-brand);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.acctbtn:hover { filter: brightness(1.06); }
+.acctbtn:active { transform: scale(.96); }
+
+/* once you are in it is identification, not an action — so it drops to
+   a quiet circle and gives its width back to the chips */
+.acctbtn--in {
+  width: 34px;
+  padding: 0;
+  background: var(--cream);
+  border: 1px solid var(--hairline);
+  color: var(--brand-text);
+}
+.acctbtn--in:hover { filter: none; border-color: var(--brand); }
+
+/* Four things do not fit across 375px. The wordmark goes first: the
+   mark beside it already says where you are, and it is the only one of
+   the four that is pure decoration at this width. */
+@media (max-width: 420px) {
+  .appbar__word { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acctbtn:active { transform: none; }
+}
+
 .chipstat {
   display: inline-flex;
   align-items: center;
