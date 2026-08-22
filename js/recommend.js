@@ -87,7 +87,19 @@ export function scoreHike(hike, ctx = {}) {
   const area = (me.home_area || "").trim().toLowerCase();
   if (area) {
     const where = `${hike.location_name || ""} ${hike.region || ""}`.toLowerCase();
-    if (where.includes(area) || area.includes((hike.location_name || "").toLowerCase().trim())) {
+    /* ⚠️ `place` MUST be checked for emptiness before the reverse test.
+       "".includes() is not the problem — area.includes("") is, and it
+       is always TRUE. Every hike with no location_name therefore scored
+       the full area weight and told the reader "near Melbourne",
+       including hikes whose region said Alpine NP. A false sentence on
+       a card, in a product whose whole claim is that it says what is
+       true on screen.
+
+       The reverse test earns its place: home_area "Melbourne, VIC"
+       should still match a hike at "Melbourne". It just cannot be
+       allowed to match nothing. */
+    const place = (hike.location_name || "").toLowerCase().trim();
+    if (where.includes(area) || (place && area.includes(place))) {
       score += W.area;
       reasons.push(`near ${me.home_area}`);
     }
