@@ -87,7 +87,13 @@ export function renderAppbar(status, stats) {
   const lv = levelFor(stats.xp || 0);
   const streak = stats.streak || 0;
 
-  bar.replaceChildren(
+  /* ⚠️ .filter(Boolean) is load-bearing. accountControl() returns null
+     on the local driver, and replaceChildren STRINGIFIES a non-Node
+     argument — so the bar rendered the literal word "null" between the
+     wordmark and the level chip, on every route. Invisible in the
+     deployed build because DB.isLive is true there, and therefore
+     exactly what a teammate cloning the repo sees first. */
+  bar.replaceChildren(...[
     el("button", {
       class: "appbar__brand",
       type: "button",
@@ -132,7 +138,7 @@ export function renderAppbar(status, stats) {
       title: streak ? `${streak}-day streak` : "No streak yet",
       html: `${flame(streak > 0)}<b>${streak}</b>`,
     })
-  );
+  ].filter(Boolean));
 }
 
 /* ---------------- signed in, or the way to be ----------------

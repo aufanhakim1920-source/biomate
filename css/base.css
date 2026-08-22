@@ -130,6 +130,13 @@ a { color: var(--brand-text); }
    nav column and overlaps nothing. */
 @media (max-width: 899px) {
   #app.has-fab #screen { padding-bottom: calc(var(--nav-h) + var(--safe-b) + 88px); }
+
+  /* Reserving space at the BOTTOM was not enough: the button also sits
+     over the right edge of whatever happens to be beside it, and on a
+     375px home screen that was 89% of an activity row's timestamp —
+     hidden, and click-blocked. The rows keep their content clear of it
+     instead. */
+  #app.has-fab .fadestack__row { padding-right: 72px; }
 }
 
 /* The router focuses #screen on every navigation so a keyboard user

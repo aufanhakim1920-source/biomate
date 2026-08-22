@@ -43,7 +43,13 @@
   /* ---- ink ---- */
   --ink:         #171717;
   --ink-soft:    #5A5652;
-  --ink-faint:   #A39E99;
+  /* ⚠️ This is real prose — .tiny, message senders, system lines, form
+     labels, grid hours — not decoration. At #A39E99 it measured 2.66:1
+     on the page and 2.45:1 on cream, where 4.5 is the bar; it was the
+     single biggest source of failing text in the app, in the same way
+     --on-brand was for buttons. Darkened to clear AA on every surface
+     it actually sits on: 4.63:1 on --bg, 4.54:1 on --cream. */
+  --ink-faint:   #6E6862;
 
   /* constants — identical in every theme, never inverted */
   --on-brand:    #FFFFFF;   /* text sitting ON a brand fill */

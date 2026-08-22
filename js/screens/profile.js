@@ -26,12 +26,20 @@ import { catalogue, showcase, TIERS } from "../badges.js";
 
 const LEVEL_NEXT_NAME = (lv) => (LEVELS[lv.level] || {}).name || "the next level";
 
+/* ⚠️ Fixed hexes, not theme tokens.
+   The spines carry white labels, and three of these used to be tokens
+   that LIFT in dark mode — amber especially, where white measured
+   1.82:1 against a 4.5 bar. A shelf of books is a physical object; its
+   covers have no reason to invert with the theme, and pinning them
+   removes the whole class of problem rather than patching one case.
+   Every colour here carries white at 12px/700:
+     #C14E27 4.79 · #A32E2E 7.03 · #8A6212 5.47 · #2E6B2E 6.44 · #6B5B95 5.91 */
 const BOOKS = [
-  { key: "photos",  title: "Photos",  hue: "var(--brand)",     h: 172, w: 40 },
-  { key: "hikes",   title: "Hikes",   hue: "var(--brand-text)", h: 186, w: 34 },
-  { key: "people",  title: "People",  hue: "var(--amber)",     h: 160, w: 46 },
-  { key: "badges",  title: "Badges",  hue: "var(--forest)",    h: 178, w: 30 },
-  { key: "settings",title: "Settings",hue: "#6B5B95",          h: 166, w: 38 },
+  { key: "photos",  title: "Photos",  hue: "#C14E27", h: 172, w: 40 },
+  { key: "hikes",   title: "Hikes",   hue: "#A32E2E", h: 186, w: 34 },
+  { key: "people",  title: "People",  hue: "#8A6212", h: 160, w: 46 },
+  { key: "badges",  title: "Badges",  hue: "#2E6B2E", h: 178, w: 30 },
+  { key: "settings",title: "Settings",hue: "#6B5B95", h: 166, w: 38 },
 ];
 
 export async function profile() {

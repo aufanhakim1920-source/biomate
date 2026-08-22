@@ -322,6 +322,11 @@
   display: grid; place-items: center;
   overflow: hidden;
 }
+/* White is correct HERE, but only because the spine colours were
+   pinned to fixed hexes that carry it — see the note on BOOKS in
+   js/screens/profile.js. When they were theme tokens, white on the
+   amber spine measured 1.82:1 in dark mode. Change a spine colour and
+   you must re-check this. */
 .book__title {
   writing-mode: vertical-rl;
   text-orientation: mixed;
