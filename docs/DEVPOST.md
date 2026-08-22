@@ -264,5 +264,5 @@ Claude (Anthropic) wrote most of the application code, the database schema and
 the security policies, working from our brief and our review. The team decided
 the problem, the product, the design direction, and made every scope call in
 the divergence log — including the decision to cut a feature rather than fake
-it. Every commit is authored by a team member; the AI collaboration is recorded
-in the commit trailers and stated here rather than left to be discovered.
+it. Every commit is authored by a team member, and the AI collaboration is
+stated here rather than left to be discovered.
