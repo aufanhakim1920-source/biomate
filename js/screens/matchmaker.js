@@ -70,35 +70,115 @@ export async function matchmaker() {
     ])
   );
 
-  /* ---- filter chips ---- */
+  /* ---- filter chips ----
+     Aufan: "when users select a category, it should move to the front
+     of the line... it's not immediately obvious the filter is active".
+
+     The row scrolls sideways, so picking the LAST chip used to leave
+     the only evidence of it — a pressed state — parked off-screen. The
+     pressed styling was doing its job and nobody could see it.
+
+     So selecting moves a chip to the front, most recent first, and the
+     unselected keep their original order behind them. Three details
+     make it work rather than merely happen:
+
+       · the same button ELEMENTS are re-ordered, never rebuilt, so a
+         FLIP animation can show the movement. Chips that teleport are
+         harder to follow than chips that slide, and the whole point is
+         that the user notices.
+       · focus stays on the chip that was pressed. Reordering under a
+         keyboard user without moving focus with them loses their place
+         entirely, and this control exists for the person who cannot
+         see the pressed state at a glance.
+       · the chip is scrolled back into view. Moving it to the front of
+         a row that is scrolled right would otherwise make it vanish —
+         the exact problem this is meant to fix, inverted. */
   const chips = el("div", { class: "chips", role: "group", "aria-label": "Filter hikes by interest" });
-  FILTERS.forEach((f) => {
-    chips.append(el("button", {
-      class: "chip",
-      type: "button",
-      "aria-pressed": active.includes(f) ? "true" : "false",
-      text: f,
-      onclick: () => {
-        const now = get().filters;
-        const next = now.includes(f) ? now.filter((x) => x !== f) : [...now, f];
-        set({ filters: next });
-        savePrefs();
-        say(next.includes(f) ? `${f} filter on` : `${f} filter off`);
-        go("matchmaker");
-      },
-    }));
-  });
+
+  const chipFor = new Map(
+    FILTERS.map((f) => [f, el("button", {
+      class: "chip", type: "button", text: f,
+      onclick: () => toggleFilter(f),
+    })])
+  );
+
+  /* selected first — get().filters is kept most-recent-first — then
+     everything else in its original order */
+  function chipOrder() {
+    const on = get().filters.filter((f) => chipFor.has(f));
+    return [...on, ...FILTERS.filter((f) => !on.includes(f))];
+  }
+
+  function layoutChips(animate) {
+    const on = new Set(get().filters);
+    const before = animate ? new Map([...chipFor].map(([f, n]) => [f, n.getBoundingClientRect().left])) : null;
+
+    chipOrder().forEach((f) => {
+      const n = chipFor.get(f);
+      n.setAttribute("aria-pressed", on.has(f) ? "true" : "false");
+      chips.append(n);   /* appending a node already in the DOM moves it */
+    });
+
+    if (!animate || reducedMotion()) return;
+    /* FLIP: the elements are already in their new places, so play the
+       old position forward to the new one. One shot, no loop. */
+    chipFor.forEach((n, f) => {
+      const dx = before.get(f) - n.getBoundingClientRect().left;
+      if (Math.abs(dx) < 1) return;
+      n.animate(
+        [{ transform: `translateX(${dx}px)` }, { transform: "translateX(0)" }],
+        { duration: 260, easing: "cubic-bezier(.2,.8,.2,1)" }
+      );
+    });
+  }
+
+  function toggleFilter(f) {
+    const now = get().filters;
+    const isOn = now.includes(f);
+    /* [f, ...rest] on select — the newest choice goes to the very
+       front, which is what "moves to the front of the line" means */
+    set({ filters: isOn ? now.filter((x) => x !== f) : [f, ...now] });
+    savePrefs();
+
+    layoutChips(true);
+
+    const n = chipFor.get(f);
+    n.focus({ preventScroll: true });
+    n.scrollIntoView({ block: "nearest", inline: "nearest", behavior: reducedMotion() ? "auto" : "smooth" });
+
+    rebuildDeck();
+    paint();
+
+    const count = get().filters.length;
+    say(`${f} filter ${isOn ? "off" : "on"}. ${count ? `${count} filter${count === 1 ? "" : "s"} active.` : "No filters."} ${deck.length} hike${deck.length === 1 ? "" : "s"} to look at.`);
+  }
+
+  layoutChips(false);
   wrap.append(chips);
+
+  /* Recomputed in place rather than re-rendering the screen: a full
+     re-render would drop focus, reset the scroll, and re-fetch
+     everything to show the same cards in a different subset. */
+  function rebuildDeck() {
+    const on = get().filters;
+    deck = hikes
+      .filter((h) => !seen.has(h.id) && !mine.has(h.id) && h.host_id !== me)
+      .filter((h) => !on.length || on.some((f) => (h.tags || []).includes(f)));
+  }
 
   /* ---- the deck ---- */
   const deckEl = el("div", { class: "deck" });
   const live = el("p", { class: "sr-only", "aria-live": "polite" });
   wrap.append(deckEl, live);
 
+  /* the reason the deck is empty changes with the filters, and the
+     screen no longer re-renders when they change — so this line is
+     updated in paint() rather than baked in once */
+  const emptyWhy = el("p", { class: "meta" });
   const empty = el("div", { class: "deck__empty" }, [
     el("div", {}, [
       el("p", { class: "display", style: "font-size:1.4rem;margin-bottom:8px", text: "That's everyone for now" }),
-      el("p", { class: "meta", text: active.length ? "Try clearing a filter — there may be more outside it." : "New hikes appear as people post them. Why not host one?" }),
+      emptyWhy,
       el("button", { class: "btn btn--primary", style: "margin-top:16px", type: "button", text: "Host a hike", onclick: () => go("host") }),
     ]),
   ]);
@@ -113,6 +193,9 @@ export async function matchmaker() {
   function paint() {
     deckEl.replaceChildren();
     if (!deck.length) {
+      emptyWhy.textContent = get().filters.length
+        ? "Try clearing a filter — there may be more outside it."
+        : "New hikes appear as people post them. Why not host one?";
       deckEl.append(empty);
       actions.querySelectorAll("button").forEach((b) => (b.disabled = true));
       say("No more hikes to look at.");
@@ -265,6 +348,10 @@ export async function matchmaker() {
   }
 
   async function resolve(h, dir) {
+    /* ⚠️ `seen` must learn about this too, not just `deck`. Changing a
+       filter now rebuilds the deck from `hikes`, and anything only
+       removed from `deck` would walk straight back in. */
+    seen.add(h.id);
     deck = deck.filter((x) => x.id !== h.id);
     paint();
 
