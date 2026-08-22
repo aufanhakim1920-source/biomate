@@ -212,6 +212,21 @@ revoke execute on function public.touch_updated_at()     from public, anon, auth
 -- private.can_lead(hike) = leader OR co-leader, and it gates UPDATE on
 -- `hikes`. Only the leader may change roles: the hike_members UPDATE
 -- policy is "your own row, or any row in a hike you host".
+--
+-- The hike's WITH CHECK pins host_id to its stored value, read back
+-- through private.host_of(id). ⚠️ That helper takes the id as an
+-- ARGUMENT on purpose. Correlating a subquery from inside a WITH CHECK
+-- does not work — a bare column name there means the NEW row, so
+-- `where k.id = id` silently becomes a tautology matching EVERY hike.
+-- The first version shipped exactly that, the subquery returned 11
+-- rows, and every UPDATE on `hikes` failed with SQLSTATE 21000. Verify
+-- a new policy with a real UPDATE, never by reading it back.
+--
+-- Second trap, same migration: the helper was created with EXECUTE
+-- revoked. RLS expressions are evaluated as the CALLING role, so a
+-- SECURITY DEFINER function still needs `grant execute` to the roles
+-- the policy applies to — SECURITY DEFINER governs what the function
+-- may do once running, not who may call it.
 -- swipes        (user_id, hike_id) + direction — a right swipe is an
 --               auditable join request, and swipes are PRIVATE so
 --               nobody can see who passed on them
