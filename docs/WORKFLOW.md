@@ -64,6 +64,13 @@ Before anything reaches `main`:
   browser can pin a stale ES module for hours. Serve on a **different port** to
   get a clean cache. `transferSize === 0` in `performance.getEntriesByType`
   means the browser never asked for the file.
+
+  ⚠️ **Stop the old server before starting the new port, in the same breath.**
+  Rotating ports to dodge that cache is the right move; leaving the previous
+  one running is not. Four accumulated in one session before Aufan asked why
+  six things were running in the background — they were dev servers, not
+  agents. `preview_list` before you finish; anything of yours still up is
+  litter. Same for the tabs pointing at them.
 - **Supabase auth URLs** (Site URL + Redirect URLs) point at the GitHub Pages
   address. Moving hosts means updating them, or every confirmation and reset
   link lands nowhere.
