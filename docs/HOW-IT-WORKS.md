@@ -1,6 +1,37 @@
 # How Biomate is built
 
-A plain-English tour for Aufan. Not a spec — just what the pieces are and why.
+A plain-English tour of the app for anyone who needs to explain it — the team,
+a judge, or someone picking the code up cold. Not a spec: what the pieces are,
+and why they were chosen.
+
+---
+
+## 0. What it is written in
+
+| | | |
+|---|---|---|
+| **JavaScript** (ES2020+) | ~79% of the repo | 41 modules, loaded as native ES modules. No React, no Vue, no jQuery. |
+| **CSS** | ~18% | Hand-written, custom properties for design tokens. No Tailwind, no Bootstrap, no preprocessor. |
+| **PL/pgSQL + SQL** | ~2.5% | The database's own language — XP calculation, the new-user trigger, the security helpers. |
+| **HTML** | ~0.5% | One file. Every screen is built in JavaScript from there. |
+
+Those percentages come from GitHub, which counts **files in the repository**.
+That is honest about the source and misleading about the stack: with no
+framework and no bundler, everything else the app runs on is the platform and
+the browser rather than a folder of downloaded code. The full picture:
+
+- **PostgreSQL 17** with Row Level Security on every table, **PostgREST** as
+  the API, **Supabase** for the database, authentication and file storage
+- **Canvas 2D** for the trail route, **SVG** for icons, the map and generated
+  artwork
+- **Geolocation** and **Screen Wake Lock** for recording a walk,
+  **Web Speech** for audio description, **Pointer Events** for the swipe deck
+- **GitHub Pages** for hosting
+
+**There is no build step.** No `npm install`, no bundler, no transpiler, no
+runtime dependencies. The repository is the deployed artifact — you can open
+`index.html` and it runs. That was a choice, not a shortcut: a hackathon
+prototype that needs a toolchain to start is a prototype that stops working.
 
 ---
 
@@ -9,8 +40,9 @@ A plain-English tour for Aufan. Not a spec — just what the pieces are and why.
 Plain HTML, CSS and JavaScript. No React, no build step, no bundler, zero npm packages at
 runtime. `index.html` loads four stylesheets, one Google font, and a single
 `<script type="module" src="js/main.js">`. Everything else comes in through ES module
-`import`s from there — `main.js` imports the router, the data layer and all 21 screens,
-registers the routes, then boots last.
+`import`s from there — `main.js` imports the router, the data layer and every screen, registers
+**19 routes across 17 screen modules** — a few screens serve more than one
+route — then boots last.
 
 Navigation is **hash-based**: every link is `#/hike/abc`, not `/hike/abc`. That's on
 purpose. The app ships to GitHub Pages, which serves static files with no server-side

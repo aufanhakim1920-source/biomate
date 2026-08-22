@@ -6,7 +6,7 @@ new project type.
 
 > **Live:** https://aufanhakim1920-source.github.io/biomate/
 >
-> Built and deployed — 20 routes across 17 screens, 41 JavaScript modules,
+> Built and deployed — 19 routes across 17 screen modules, 41 JavaScript files,
 > no framework and no build step. Swipe a hike, join it, chat, plan a date
 > together, walk it with GPS recording, and keep what you walked.
 
@@ -83,7 +83,7 @@ gets **rotated**, not reverted.
 - ✅ Domain tables applied — hikes, membership with roles, swipes, messages,
   plans, availability, trail logs. The full statements live in the project's
   migration history; `schema.sql` is the narrative record.
-- ✅ Frontend — 20 routes, deployed to GitHub Pages
+- ✅ Frontend — 19 routes, deployed to GitHub Pages
 - ✅ Guest-first auth — anonymous users convert to a real account **in place**,
   so the user id never changes and nothing has to be migrated
 - ✅ Two test suites, plain Node, no framework — `test/track.test.mjs` (the
