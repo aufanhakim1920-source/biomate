@@ -135,65 +135,140 @@ export async function plan({ id }) {
 /* ---------------- gear list ----------------
    Its own screen because the Figma gives it its own button. Not in
    the brief — additive, per the precedence rule. */
+/* ============================================================
+   Gear — rebuilt from the updated Figma (node 31:3611)
+
+   ⚠️ That node is NAMED "Location" and is actually the Gear screen.
+   Screenshotted before building, which is the only reason this is not
+   a Location page — Peak & Pan shipped three screens built from node
+   names alone and all three were wrong.
+
+   What the design changed:
+     · items are numbered, filled cards — not check rows
+     · each item has a NAME and a NOTE ("Water" / "3 L minimum per
+       person"), so a gear item is two fields, not a string
+     · the toggle is a ring on the right, not a box on the left
+     · the four planner tiles sit at the bottom of this screen too,
+       so Calendar / Location / Gear are siblings you can move
+       between rather than three separate dead ends
+
+   Old rows are plain strings in `plans.gear`. They are read as a name
+   with no note rather than migrated — the column is jsonb, both shapes
+   live in it happily, and a migration to gain a subtitle nobody has
+   written yet would be work for its own sake.
+   ============================================================ */
 export async function gear({ id }) {
   const meId = DB.uid();
-  const [rows, plans] = await Promise.all([
+  const [rows, plans, members, profiles] = await Promise.all([
     DB.list("hikes", { filter: { id }, limit: 1 }),
     DB.list("plans", { filter: { hike_id: id }, limit: 1 }),
+    DB.list("hike_members", { filter: { hike_id: id } }),
+    DB.list("profiles"),
   ]);
   const h = rows[0];
   if (!h) return el("p", { class: "meta", style: "padding:40px 20px", text: "That hike no longer exists." });
 
   const p = plans[0] || { gear: [] };
-  const items = [...(p.gear || [])];
-  const checked = new Set();
+  /* accepts both the old string rows and the new {name, note} ones */
+  const items = (p.gear || []).map((g) =>
+    typeof g === "string" ? { name: g, note: "" } : { name: g.name || "", note: g.note || "" }
+  );
+  const packed = new Set();
 
   const wrap = el("div");
-  wrap.append(
-    el("div", { class: "topbar topbar--left" }, [
-      el("button", { class: "iconbtn iconbtn--ring", type: "button", "aria-label": "Back", html: icon("back", { size: 20 }), onclick: back }),
-      el("h1", { class: "display", style: "font-size:1.5rem", text: "What to bring" }),
-    ])
-  );
+  wrap.append(planHeader(h, members, profiles, "Gear"));
 
-  const list = el("ul", { class: "checklist" });
+  const list = el("ol", { class: "gearlist" });
   const draw = () => {
     list.replaceChildren(...items.map((g, i) =>
       el("li", {}, [
         el("button", {
-          class: "checkline",
+          class: "gearitem",
           type: "button",
-          "aria-pressed": checked.has(i) ? "true" : "false",
+          "aria-pressed": packed.has(i) ? "true" : "false",
+          "aria-label": `${g.name}${g.note ? `. ${g.note}` : ""}. ${packed.has(i) ? "Packed" : "Not packed"}.`,
           onclick: (e) => {
-            if (checked.has(i)) checked.delete(i); else checked.add(i);
-            e.currentTarget.setAttribute("aria-pressed", checked.has(i) ? "true" : "false");
-            say(checked.has(i) ? `${g}, packed` : `${g}, unpacked`);
+            if (packed.has(i)) packed.delete(i); else packed.add(i);
+            e.currentTarget.setAttribute("aria-pressed", packed.has(i) ? "true" : "false");
+            say(packed.has(i) ? `${g.name}, packed` : `${g.name}, unpacked`);
           },
         }, [
-          el("span", { class: "checkline__box", html: icon("check", { size: 14 }) }),
-          el("span", { text: g }),
+          el("span", { class: "gearitem__n", "aria-hidden": "true", text: String(i + 1) }),
+          el("span", { class: "gearitem__body" }, [
+            el("span", { class: "gearitem__name", text: g.name }),
+            g.note ? el("span", { class: "gearitem__note", text: g.note }) : null,
+          ]),
+          el("span", { class: "gearitem__ring", "aria-hidden": "true" }),
         ]),
       ])
     ));
-    if (!items.length) list.append(el("li", { class: "tiny", style: "padding:10px 2px", text: "Nothing on the list yet." }));
+    if (!items.length) {
+      list.append(el("li", { class: "tiny", style: "padding:10px 2px", text: "Nothing on the list yet. Add the first thing anyone will need." }));
+    }
   };
   draw();
   wrap.append(el("div", { class: "block" }, [list]));
 
-  const input = el("input", { class: "field", type: "text", placeholder: "Add an item", "aria-label": "Add a gear item" });
-  wrap.append(el("div", { class: "block inline" }, [
-    input,
-    el("button", {
-      class: "btn btn--ghost", type: "button", "aria-label": "Add gear item", html: icon("plus", { size: 18 }),
-      onclick: async () => {
-        const v = input.value.trim();
-        if (!v) return;
-        items.push(v); input.value = ""; draw();
-        await DB.upsert("plans", { hike_id: h.id, gear: items, updated_by: meId }, ["hike_id"]);
-        say(`Added ${v}`);
-      },
-    }),
-  ]));
+  /* The design shows no add control, but the whole point of a shared
+     plan is that the group builds it — dropping this would remove a
+     working feature to match a mock that simply did not draw it. */
+  const name = el("input", { class: "field", type: "text", placeholder: "Water", "aria-label": "What to bring" });
+  const note = el("input", { class: "field", type: "text", placeholder: "3 L minimum per person", "aria-label": "A note about it, optional" });
+  const add = async () => {
+    const v = name.value.trim();
+    if (!v) return;
+    items.push({ name: v, note: note.value.trim() });
+    name.value = ""; note.value = ""; draw();
+    await DB.upsert("plans", { hike_id: h.id, gear: items, updated_by: meId }, ["hike_id"]);
+    say(`Added ${v}`);
+    name.focus();
+  };
+  wrap.append(
+    el("div", { class: "block" }, [
+      el("p", { class: "tiny", text: "ADD SOMETHING" }),
+      el("div", { class: "gearadd" }, [
+        name,
+        note,
+        el("button", { class: "btn btn--ghost", type: "button", "aria-label": "Add to the list", html: icon("plus", { size: 18 }), onclick: add }),
+      ]),
+    ])
+  );
 
+  wrap.append(planTiles(h, "gear"));
   return wrap;
+}
+
+/* ---- shared by the three planner screens ----
+   The updated Figma puts the same header and the same four tiles on
+   Calendar, Location and Gear. They were only on the plan page, which
+   is what made each of them a dead end you had to back out of. */
+export function planHeader(h, members, profiles, title) {
+  const byId = Object.fromEntries(profiles.map((x) => [x.id, x]));
+  const joined = members.filter((m) => m.status !== "left").slice(0, 3);
+  return el("div", { class: "planhead" }, [
+    el("button", { class: "iconbtn iconbtn--ring", type: "button", "aria-label": "Back", html: icon("back", { size: 20 }), onclick: back }),
+    el("span", { class: "avstack planhead__who" }, joined.map((m) =>
+      avatar((byId[m.user_id] || {}).avatar_url, (byId[m.user_id] || {}).display_name || "?")
+    )),
+    el("h1", { class: "display planhead__t", text: title }),
+  ]);
+}
+
+export function planTiles(h, current) {
+  const t = (ic, label, to) =>
+    el("button", {
+      class: `tile ${current === to ? "is-current" : ""}`,
+      type: "button",
+      "aria-current": current === to ? "page" : null,
+      onclick: () => go(`${to}/${h.id}`),
+    }, [
+      el("span", { class: "tile__ic", html: icon(ic, { size: 20 }) }),
+      el("span", { text: label }),
+    ]);
+  return el("div", { class: "tiles" }, [
+    t("calendar", "Calendar Availability", "when"),
+    t("pin", "Location", "location"),
+    t("gear", "Gear", "gear"),
+    el("button", { class: "tile tile--primary", type: "button", text: "Save", onclick: () => go(`plan/${h.id}`) }),
+  ]);
 }

@@ -473,6 +473,79 @@
 /* The live recorder stacks two canvases: the route is append-only and
    never cleared, the moving dot is cleared every fix. Same box, same
    size, so they share one coordinate system. */
+/* ---------------- the planner: Calendar / Location / Gear ----------------
+   The updated Figma gives all three the same header — back, the group's
+   faces, the screen name — and the same four tiles underneath, which is
+   what turns three dead ends into one place with three views. */
+.planhead {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 6px var(--pad) 4px;
+}
+.planhead > .iconbtn { justify-self: start; }
+.planhead__who { grid-column: 2; }
+.planhead__t {
+  grid-column: 1 / -1;
+  font-size: 1.9rem;
+  text-align: center;
+  margin-top: 2px;
+}
+
+.tile.is-current { border-color: var(--brand); background: var(--cream); }
+
+/* ---- gear: numbered cards, name + note, a ring to tick ---- */
+.gearlist { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.gearitem {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  padding: 14px 16px; text-align: left;
+  border-radius: var(--r-lg);
+  background: var(--peach-0);
+  border: 1px solid var(--hairline);
+}
+.gearitem__n {
+  flex: 0 0 26px; height: 26px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--brand-ink); color: var(--on-brand);
+  font-size: var(--t-xs); font-weight: 800;
+}
+.gearitem__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.gearitem__name { font-weight: 700; font-size: var(--t-sm); }
+.gearitem__note { font-size: var(--t-xs); color: var(--ink-soft); }
+.gearitem__ring {
+  flex: 0 0 20px; height: 20px; border-radius: 50%;
+  border: 2px solid var(--ink-faint);
+}
+/* packed reads as filled, and not by colour alone — the ring gains a
+   solid core and the whole card lifts to the brand fill */
+.gearitem[aria-pressed="true"] { background: var(--brand-ink); border-color: transparent; }
+.gearitem[aria-pressed="true"] .gearitem__name,
+.gearitem[aria-pressed="true"] .gearitem__note { color: var(--on-brand); }
+.gearitem[aria-pressed="true"] .gearitem__n { background: var(--on-brand); color: var(--brand-ink); }
+.gearitem[aria-pressed="true"] .gearitem__ring {
+  border-color: var(--on-brand);
+  box-shadow: inset 0 0 0 4px var(--on-brand);
+}
+
+.gearadd { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.gearadd .btn { align-self: flex-start; }
+
+/* ---- location: the map area, saying what it is waiting for ---- */
+.mapwell {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; text-align: center;
+  min-height: 190px; padding: 24px 22px;
+  border-radius: var(--r-lg);
+  background: linear-gradient(160deg, var(--peach-0), var(--peach-1));
+  border: 1px dashed rgba(210,85,42,.38);
+}
+.mapwell__ic { color: var(--brand-text); }
+.mapwell__where { font-weight: 700; font-size: var(--t-md); }
+.mapwell__note { font-size: var(--t-xs); color: var(--ink-soft); max-width: 34ch; line-height: 1.5; }
+
 /* ---------------- account ---------------- */
 
 /* the guest prompt on the profile — a row, not a banner. It is an

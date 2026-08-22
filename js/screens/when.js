@@ -21,6 +21,7 @@ import { el, toast } from "../ui.js";
 import { icon } from "../icons.js";
 import { say } from "../a11y.js";
 import { back, go } from "../router.js";
+import { planTiles } from "./plan.js";
 
 const START_HOUR = 6;
 const END_HOUR = 20;
@@ -280,6 +281,10 @@ export async function when({ id }) {
     say(`Locked in for ${dayLabel(best.day)} at ${hourLabel(best.hour)}.`);
     go(`hike/${h.id}`);
   }
+
+  /* the updated Figma puts the same four tiles on Calendar as on
+     Location and Gear — three views of one plan, not three dead ends */
+  wrap.append(planTiles(h, "when"));
 
   refresh();
   return wrap;

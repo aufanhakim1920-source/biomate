@@ -23,6 +23,7 @@ import { hike } from "./screens/hike.js";
 import { messages } from "./screens/messages.js";
 import { chat } from "./screens/chat.js";
 import { plan, gear } from "./screens/plan.js";
+import { location as locationScreen } from "./screens/location.js";
 import { when } from "./screens/when.js";
 import { profile } from "./screens/profile.js";
 import { shelf } from "./screens/shelf.js";
@@ -42,7 +43,8 @@ route("hike",       hike,       { title: () => "Hike",              nav: "home" 
 route("messages",   messages,   { title: () => "Messages",          nav: "chat" });
 route("chat",       chat,       { title: () => "Group chat",        nav: "chat" });
 route("plan",       plan,       { title: () => "Plan your activity",nav: "chat" });
-route("gear",       gear,       { title: () => "What to bring",     nav: "chat" });
+route("gear",       gear,       { title: () => "Gear",              nav: "chat" });
+route("location",   locationScreen, { title: () => "Location",      nav: "chat" });
 route("when",       when,       { title: () => "Availability",      nav: "chat" });
 route("profile",    profile,    { title: () => "Profile",           nav: "map" });
 route("shelf",      shelf,      { title: (p) => p.id || "Shelf",    nav: "map" });
