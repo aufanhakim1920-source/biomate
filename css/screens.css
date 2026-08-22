@@ -557,7 +557,19 @@
    The leader is hikes.host_id; co-leader is a flag on the membership
    row. The chip is the only place either is visible, so it has to read
    at a glance without relying on colour alone — hence the words. */
-.personrow { display: flex; align-items: center; gap: 8px; }
+/* ⚠️ A GRID, not a flex row. As flex, `.row` took whatever space the
+   button left over — so the card's width depended on whether its label
+   said "Step down" or "Make co-leader", and the leader's row, having no
+   button at all, ran full width. Three cards, three different widths,
+   for a reason that has nothing to do with the people on them.
+   Reserving the action column makes every card line up, including the
+   rows that have nothing to put in it. */
+.personrow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 8.75rem;
+  align-items: center;
+  gap: 8px;
+}
 .personrow .row { min-width: 0; }
 
 .rolechip {
@@ -579,16 +591,36 @@
 .rolechip--coleader { background: var(--cream); color: var(--brand-text); border: 1px solid var(--hairline); }
 
 .rolebtn {
-  flex: 0 0 auto;
   font-size: var(--t-xs);
   padding: 8px 12px;
   min-height: var(--tap);
+  width: 100%;
 }
 @media (max-width: 420px) {
-  /* at this width the name and the button fight; the button wins the
-     second line rather than squeezing the name to three characters */
-  .personrow { flex-wrap: wrap; }
-  .rolebtn { margin-left: auto; }
+  /* Reserving 8.75rem here would leave the name about 195px and clip
+     it, so the button drops to its own line.
+
+     ⚠️ But a button on its own line ends up nearer the NEXT person's
+     card than its own, and "Step down" floating above aaron.abbott
+     reads as aaron's button. So at this width the CARD becomes the
+     whole row: the person and their control share one surface, and
+     ownership is unambiguous. `.row` inside gives up its background
+     rather than nesting a card in a card. */
+  .personrow {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 0;
+    padding: 12px 14px;
+    border-radius: var(--r-lg);
+    background: linear-gradient(160deg, var(--peach-0), var(--peach-1));
+    box-shadow: var(--lift-1);
+  }
+  .personrow .row {
+    padding: 0;
+    background: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  .rolebtn { width: auto; justify-self: end; margin-top: 10px; }
 }
 
 /* ---------------- account ---------------- */
