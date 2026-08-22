@@ -16,11 +16,12 @@
 
 import { DB } from "../db.js";
 import * as Auth from "../auth.js";
-import { el, avatar, fmtDistance, fmtDuration } from "../ui.js";
+import { el, avatar, toast, fmtDistance, fmtDuration } from "../ui.js";
 import { icon } from "../icons.js";
-import { setAudio, setTheme } from "../a11y.js";
+import { say, setAudio, setTheme } from "../a11y.js";
 import { get } from "../store.js";
 import { go, back } from "../router.js";
+import { refreshAppbar } from "../appbar.js";
 import { levelFor, breakdown, TERRAIN_XP, LEVELS } from "../levels.js";
 import { catalogue, showcase, TIERS } from "../badges.js";
 
@@ -89,7 +90,22 @@ export async function profile() {
     el("div", { class: "topbar topbar--left" }, [
       el("button", { class: "iconbtn iconbtn--ring", type: "button", "aria-label": "Back", html: icon("back", { size: 20 }), onclick: back }),
       el("h1", { class: "display", style: "flex:1;font-size:1.5rem", text: (me && me.display_name) || "You" }),
-      el("button", { class: "btn btn--ghost", style: "padding:8px 16px;font-size:var(--t-sm)", type: "button", text: "Edit", onclick: () => go("settings") }),
+      /* Aufan: "consolidate profile details into 1 page". Editing used
+         to be a separate screen, so seeing your profile and changing it
+         were two places. Now it is one page and this jumps down to the
+         part that edits — same page, moved focus, so a keyboard user
+         lands on the first field rather than being scrolled past it. */
+      el("button", {
+        class: "btn btn--ghost", style: "padding:8px 16px;font-size:var(--t-sm)",
+        type: "button", text: "Edit",
+        onclick: () => {
+          const t = document.getElementById("your-details");
+          if (!t) return;
+          t.scrollIntoView({ block: "start", behavior: "smooth" });
+          const first = t.querySelector("input, select, button");
+          if (first) first.focus({ preventScroll: true });
+        },
+      }),
     ])
   );
 
@@ -251,7 +267,13 @@ export async function profile() {
       role: "listitem",
       style: `--bw:${b.w}px; --bh:${b.h}px; --hue:${b.hue}; --lean:${lean}deg`,
       "aria-label": `${b.title} section`,
-      onclick: () => go(b.key === "settings" ? "settings" : `shelf/${b.key}`),
+      onclick: () => {
+        if (b.key !== "settings") return go(`shelf/${b.key}`);
+        /* the Settings spine used to open a second page holding the
+           same things this one now holds */
+        const t = document.getElementById("your-details");
+        if (t) t.scrollIntoView({ block: "start", behavior: "smooth" });
+      },
     }, [
       el("span", { class: "book__spine" }, [el("span", { class: "book__title", text: b.title })]),
       el("span", { class: "book__pages", "aria-hidden": "true" }),
@@ -261,6 +283,9 @@ export async function profile() {
   });
 
   wrap.append(el("div", { class: "shelfwrap" }, [shelf, el("div", { class: "shelf__plank", "aria-hidden": "true" })]));
+
+  /* ---- your details, on the same page as the profile they change ---- */
+  wrap.append(detailsSection(me, meId));
 
   /* ---- quick accessibility controls, always reachable ---- */
   const s = get();
@@ -277,7 +302,213 @@ export async function profile() {
     ])
   );
 
+  /* ---- account, at the very bottom ----
+     Aufan: "put sign out and change my password at the bottom of the
+     existing profile page". Last, because it is the section you visit
+     least and the one you least want to hit by accident. */
+  if (DB.isLive) wrap.append(accountSection());
+
+  /* ---- start over ---- */
+  wrap.append(
+    el("section", { class: "block" }, [
+      el("h2", { class: "h2", text: "Start over" }),
+      el("p", { class: "meta", text: "Clears everything stored on this device. Your account and anything you posted stay on the server." }),
+      el("button", {
+        class: "btn btn--ghost", style: "margin-top:10px", type: "button", text: "Reset this device",
+        onclick: () => {
+          if (!confirm("Clear all Biomate data on this device? This cannot be undone.")) return;
+          /* sweep by prefix — a hand-kept list of keys had already
+             drifted once and left an unfinished walk behind */
+          const wipe = (store) => {
+            const doomed = [];
+            for (let i = 0; i < store.length; i++) {
+              const k = store.key(i);
+              if (k && k.startsWith("biomate/")) doomed.push(k);
+            }
+            doomed.forEach((k) => store.removeItem(k));
+          };
+          wipe(localStorage);
+          wipe(sessionStorage);
+          location.hash = "#/welcome/1";
+          location.reload();
+        },
+      }),
+    ])
+  );
+
   return wrap;
+}
+
+/* ------------------------------------------------------------
+   The editable half of the profile. Same fields as the old settings
+   screen, in the same order they appear on the card above, so the
+   form reads as *the thing you are editing* rather than a list of
+   unrelated inputs.
+   ------------------------------------------------------------ */
+const PRONOUNS = ["she/her", "he/him", "they/them", "prefer not to say"];
+const EXPERIENCE = [
+  ["beginner", "New to this", "A few easy walks, still working out what I like"],
+  ["intermediate", "Comfortable", "Happy with a long day and some elevation"],
+  ["thru-hiker", "Thru-hiker", "Multi-day, carrying everything, in most weather"],
+];
+
+function detailsSection(me = {}, meId) {
+  const box = el("section", { class: "block", id: "your-details", tabindex: "-1" });
+  box.append(el("h2", { class: "h2", text: "Your details" }));
+
+  /* picture */
+  let avatarUrl = me.avatar_url || "";
+  const uid = meId || "you";
+  const options = ["", ...[1, 2, 3, 4, 5, 6].map((n) => `https://i.pravatar.cc/200?u=${uid}-${n}`)];
+  const preview = el("span", { class: "avatarpick__now" });
+  const drawPreview = () => preview.replaceChildren(avatar(avatarUrl, me.display_name || "You", "avatar avatar--xl"));
+  const picker = el("div", { class: "avatarpick__row", role: "radiogroup", "aria-label": "Choose a picture" });
+  const drawPicker = () => {
+    picker.replaceChildren(...options.map((u, i) =>
+      el("button", {
+        class: `avatarpick__opt ${u === avatarUrl ? "is-on" : ""}`,
+        type: "button", role: "radio",
+        "aria-checked": u === avatarUrl ? "true" : "false",
+        "aria-label": u ? `Picture ${i}` : "No picture, use my initial instead",
+        onclick: async () => {
+          avatarUrl = u; drawPreview(); drawPicker();
+          await DB.saveProfile({ avatar_url: u });
+          say(u ? "Picture changed." : "Picture removed.");
+        },
+      }, [avatar(u, me.display_name || "You")])
+    ));
+  };
+  drawPreview(); drawPicker();
+  box.append(el("div", { class: "avatarpick" }, [el("div", { class: "avatarpick__wrap" }, [preview, picker])]));
+
+  const name = el("input", { class: "field", id: "dn", type: "text", maxlength: "40", "aria-label": "Display name" });
+  name.value = me.display_name || "";
+  const bio = el("textarea", {
+    class: "planbox", id: "bio", rows: "3", maxlength: "240",
+    placeholder: "A line about how you like to walk. Slow? Early starts? Always brings snacks?",
+    "aria-label": "About you",
+  });
+  bio.value = me.bio || "";
+  const area = el("input", { class: "field", id: "area", type: "text", maxlength: "60", placeholder: "Melbourne", "aria-label": "Where you are based" });
+  area.value = me.home_area || "";
+  const pronouns = el("select", { class: "field", id: "pn", "aria-label": "Pronouns" }, [
+    el("option", { value: "", text: "Prefer not to say" }),
+    ...PRONOUNS.map((x) => el("option", { value: x, text: x })),
+  ]);
+  pronouns.value = me.pronouns || "";
+
+  let exp = me.experience || "beginner";
+  const expWrap = el("div", { class: "stack", style: "padding:0" });
+  const drawExp = () => expWrap.replaceChildren(...EXPERIENCE.map(([key, label, hint]) =>
+    el("button", {
+      class: "row", type: "button",
+      "aria-pressed": exp === key ? "true" : "false",
+      onclick: () => { exp = key; drawExp(); say(label); },
+    }, [
+      el("span", { class: "row__body" }, [
+        el("span", { class: "row__title", text: label }),
+        el("span", { class: "row__sub", text: hint }),
+      ]),
+    ])
+  ));
+  drawExp();
+
+  const field = (id, label, node) => el("div", { style: "margin-top:14px" }, [
+    el("label", { class: "tiny", for: id, text: label }), node,
+  ]);
+  box.append(
+    field("dn", "DISPLAY NAME", name),
+    field("bio", "ABOUT YOU", bio),
+    field("area", "WHERE YOU ARE BASED", area),
+    field("pn", "PRONOUNS", pronouns),
+    el("p", { class: "tiny", style: "margin-top:14px", text: "EXPERIENCE" }),
+    expWrap
+  );
+
+  const saveBtn = el("button", {
+    class: "btn btn--primary btn--block", style: "margin-top:16px",
+    type: "button", text: "Save profile",
+    onclick: async () => {
+      saveBtn.disabled = true;
+      await DB.saveProfile({
+        display_name: name.value.trim() || "New hiker",
+        bio: bio.value.trim(),
+        home_area: area.value.trim(),
+        pronouns: pronouns.value,
+        experience: exp,
+      });
+      saveBtn.disabled = false;
+      toast("Profile saved");
+      say("Profile saved.");
+      /* the page above shows what was just edited, so it has to redraw */
+      go("profile");
+    },
+  });
+  box.append(saveBtn);
+  return box;
+}
+
+/* ------------------------------------------------------------
+   Account — the bottom of the page.
+   ------------------------------------------------------------ */
+function accountSection() {
+  const a = Auth.account();
+  const box = el("section", { class: "block" }, [el("h2", { class: "h2", text: "Account" })]);
+
+  if (!a.signedIn) {
+    box.append(
+      el("p", { class: "meta", text: a.awaitingConfirmation
+        ? `Almost there — confirm the email sent to ${a.email} and this becomes a real account.`
+        : "You're browsing as a guest, so this profile lives in this browser only." }),
+      el("button", {
+        class: "btn btn--primary btn--block", style: "margin-top:12px", type: "button",
+        text: a.awaitingConfirmation ? "Finish setting up" : "Create an account, or sign in",
+        onclick: () => go("account"),
+      })
+    );
+    return box;
+  }
+
+  const err = el("p", { class: "acct__err", role: "alert" });
+  box.append(
+    el("div", { class: "acct__badge" }, [
+      el("span", { class: "acct__ic", html: icon("check", { size: 18 }), "aria-hidden": "true" }),
+      el("div", {}, [
+        el("p", { class: "row__title", text: "Signed in" }),
+        el("p", { class: "row__sub", text: a.email }),
+      ]),
+    ]),
+    err,
+    el("button", {
+      class: "btn btn--ghost btn--block", style: "margin-top:12px", type: "button", text: "Change my password",
+      onclick: async (e) => {
+        const b = e.currentTarget;
+        b.disabled = true;
+        err.textContent = "";
+        try {
+          await Auth.requestPasswordReset(a.email);
+          toast("Reset link sent");
+          say(`A reset link is on its way to ${a.email}.`);
+        } catch (e2) {
+          err.textContent = String(e2.message || e2).replace(/^auth [^:]+:\s*/, "");
+          b.disabled = false;
+        }
+      },
+    }),
+    el("button", {
+      class: "btn btn--ghost btn--block", style: "margin-top:10px", type: "button", text: "Sign out",
+      onclick: async (e) => {
+        e.currentTarget.disabled = true;
+        await Auth.signOut();
+        await refreshAppbar();
+        toast("Signed out — browsing as a guest");
+        say("Signed out. You are browsing as a guest again.");
+        go("home");
+      },
+    }),
+    el("p", { class: "tiny", style: "padding-top:10px", text: "Signing out puts you back in guest mode with a fresh, empty profile. Nothing on your account is deleted — sign back in and it is all there." })
+  );
+  return box;
 }
 
 function stat(value, label) {
