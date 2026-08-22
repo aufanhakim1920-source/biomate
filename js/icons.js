@@ -47,6 +47,10 @@ export const icons = {
   volume: (o) => wrap(`<path d="M4 9.5h3L11 6v12l-4-3.5H4v-5Z"/><path d="M14.5 9.5a3.5 3.5 0 0 1 0 5M17 7a7 7 0 0 1 0 10"/>`, o),
   mute: (o) => wrap(`<path d="M4 9.5h3L11 6v12l-4-3.5H4v-5Z"/><path d="m15 9.5 4 5M19 9.5l-4 5"/>`, o),
   leaf: (o) => wrap(`<path d="M20 4C10 4 4 8.5 4 15a5 5 0 0 0 5 5c6.5 0 11-6 11-16Z"/><path d="M8.5 15.5C11 13 14 11.5 17 11"/>`, o),
+  /* "what you missed" — an upright bell, not a tilted ringing one.
+     A tilted bell is the icon for an alert going off right now; this
+     opens a list of things that already happened. */
+  bell: (o) => wrap(`<path d="M6.5 17V11a5.5 5.5 0 0 1 11 0v6"/><path d="M4.5 17h15"/><path d="M10 20a2.2 2.2 0 0 0 4 0"/>`, o),
 };
 
 /** Insert an icon into a container element by name. */

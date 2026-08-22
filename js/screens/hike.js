@@ -10,12 +10,13 @@
    ============================================================ */
 
 import { DB } from "../db.js";
-import { el, photo, avatar, toast, fmtDate, difficultyLabel } from "../ui.js";
+import { el, photo, avatar, fmtDate, difficultyLabel } from "../ui.js";
 import { icon } from "../icons.js";
 import { say } from "../a11y.js";
 import { go, back } from "../router.js";
 import { personBadge } from "../appbar.js";
 import { leaveControl } from "../leave.js";
+import { joinedHike } from "../fx.js";
 
 export async function hike({ id }) {
   const meId = DB.uid();
@@ -139,9 +140,14 @@ export async function hike({ id }) {
                for one person in one group, and every count on every
                screen would quietly read one too many. */
             await DB.upsert("hike_members", { hike_id: h.id, user_id: meId, status: "joined" }, ["hike_id", "user_id"]);
-            toast(iLeft ? "You're back in" : "You're in");
-            say(`${iLeft ? "Rejoined" : "Joined"} ${h.title}. Opening the group chat.`);
-            go(`chat/${h.id}`);
+            /* The toast is gone from this path: joining is the single
+               most important yes in the app and it was being reported
+               in the same grey pill as "Profile saved". It gets a
+               moment now — and the moment does the say() itself. */
+            joinedHike(h, { rejoined: iLeft });
+            /* the chat opens a beat later than the panel, so the
+               celebration is not immediately wiped by a navigation */
+            setTimeout(() => go(`chat/${h.id}`), 700);
           },
         });
 

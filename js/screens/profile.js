@@ -20,6 +20,7 @@ import { el, avatar, toast, fmtDistance, fmtDuration } from "../ui.js";
 import { icon } from "../icons.js";
 import { say, setAudio, setTheme } from "../a11y.js";
 import { get } from "../store.js";
+import { setSound } from "../sound.js";
 import { go, back } from "../router.js";
 import { refreshAppbar } from "../appbar.js";
 import { levelFor, breakdown, TERRAIN_XP, LEVELS } from "../levels.js";
@@ -289,11 +290,41 @@ export async function profile() {
 
   /* ---- quick accessibility controls, always reachable ---- */
   const s = get();
+
+  /* Sound effects sit directly under audio description because they are
+     the same decision made twice, and someone who has just thought
+     about one is the person best placed to answer the other. Both
+     default to OFF for the identical reason, and the copy says so out
+     loud rather than making anyone guess.
+
+     ⚠️ setSound() must run INSIDE the click handler. That gesture is
+     what unlocks audio playback for the session — move it behind an
+     await or a timeout and the browser swallows every cue until the
+     visitor happens to click something else, which reads as "the
+     toggle is broken". toggleRow calls onChange synchronously, which
+     is what makes this safe. */
+  const soundNote = el("p", { class: "tiny", style: "margin-top:8px" });
+
   wrap.append(
     el("section", { class: "block" }, [
       el("h2", { class: "h2", text: "Accessibility" }),
       toggleRow("Audio description", s.audio, (on) => setAudio(on),
         "Reads each screen aloud. Off by default so a shared link never surprises anyone."),
+      toggleRow("Sound effects", s.sound, (on) => {
+        soundNote.textContent = "";
+        say(on ? "Sound effects on." : "Sound effects off.");
+        setSound(on).then((installed) => {
+          /* Honest about a real possibility: this repo ships the sound
+             SYSTEM, and the MP3s are dropped in separately (see
+             assets/sfx/README.md). A switch that turns on and then does
+             nothing, with no explanation, is a bug report waiting to
+             happen — so it says so itself. */
+          if (on && installed === 0) {
+            soundNote.textContent = "No sound files are installed yet — see assets/sfx/README.md. Everything else works; there is just nothing to play.";
+          }
+        });
+      }, "A short sound when you join a walk, earn a badge or level up. Off by default, for the same reason."),
+      soundNote,
       el("div", { class: "inline", style: "margin-top:10px" }, [
         themeBtn("Follow system", null, s.theme),
         themeBtn("Light", "light", s.theme),

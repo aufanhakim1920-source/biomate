@@ -20,6 +20,9 @@ const state = {
 
   filters: [],          // active chip filters on the deck
   audio: false,         // audio description on/off
+  /* Same default, same reason as `audio`: a shared link must never
+     make a noise at someone who did not ask for one. See js/sound.js. */
+  sound: false,         // sound effects on/off
   theme: null,          // null = follow the system
 };
 
@@ -52,6 +55,10 @@ export function loadPrefs() {
     const p = JSON.parse(localStorage.getItem(PREF) || "{}");
     Object.assign(state, {
       audio: Boolean(p.audio),
+      /* Boolean() rather than `p.sound ?? false`: an absent key, a
+         stale `null` from an older build and an explicit false must
+         all mean OFF. Anything that can make noise fails closed. */
+      sound: Boolean(p.sound),
       theme: p.theme || null,
       filters: Array.isArray(p.filters) ? p.filters : [],
     });
@@ -62,6 +69,7 @@ export function loadPrefs() {
 export function savePrefs() {
   localStorage.setItem(PREF, JSON.stringify({
     audio: state.audio,
+    sound: state.sound,
     theme: state.theme,
     filters: state.filters,
   }));

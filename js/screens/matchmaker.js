@@ -15,13 +15,13 @@
    ============================================================ */
 
 import { DB } from "../db.js";
-import { el, photo, toast, difficultyLabel, fmtShortDate } from "../ui.js";
+import { el, photo, difficultyLabel, fmtShortDate } from "../ui.js";
 import { icon } from "../icons.js";
 import { say, reducedMotion } from "../a11y.js";
 import { get, set, savePrefs } from "../store.js";
 import { go } from "../router.js";
 import { refreshAppbar, personBadge } from "../appbar.js";
-import { xpBurst } from "../fx.js";
+import { xpBurst, joinedHike } from "../fx.js";
 
 /* Cut on a word boundary. A raw slice(0, 130) left "for anyone who'"
    dangling mid-word, which reads as a rendering fault rather than as
@@ -364,8 +364,13 @@ export async function matchmaker() {
       const terrain = { easy: 10, moderate: 30, hard: 70 }[h.difficulty] || 0;
       xpBurst(25 + terrain, deckEl);
       refreshAppbar();
-      toast(`You're in — ${h.title.split("—")[0].trim()}`);
-      say(`Joined ${h.title}. Opening the group chat.`);
+      /* The XP chip and the moment are two different statements and
+         both are wanted: the chip says what the swipe was WORTH and
+         flies to the level chip that just changed, the panel says
+         what just HAPPENED. Neither one is decoration for the other.
+         joinedHike does the say() — a second one here would collide
+         with it in the live region. */
+      joinedHike(h);
       setTimeout(() => go(`chat/${h.id}`), 700);
     } else {
       say("Skipped.");

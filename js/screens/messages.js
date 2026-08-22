@@ -11,14 +11,16 @@ import { DB } from "../db.js";
 import { el, avatar, timeAgo } from "../ui.js";
 import { icon } from "../icons.js";
 import { go, back } from "../router.js";
+import { feed } from "../notify.js";
 
 export async function messages() {
   const meId = DB.uid();
-  const [members, hikes, msgs, profiles] = await Promise.all([
+  const [members, hikes, msgs, profiles, inbox] = await Promise.all([
     DB.list("hike_members"),
     DB.list("hikes"),
     DB.list("messages"),
     DB.list("profiles"),
+    feed(),
   ]);
 
   const byId = Object.fromEntries(profiles.map((p) => [p.id, p]));
@@ -41,10 +43,25 @@ export async function messages() {
 
   const wrap = el("div");
 
+  /* The inbox lives one tap from here rather than as a sixth nav
+     item: "what happened while I was away" is the same question as
+     "who has messaged me", and the nav is already at the five icons
+     the Figma specifies. The count rides on the button so it is
+     answerable without opening anything. */
+  const unread = inbox.count;
   wrap.append(
     el("div", { class: "topbar" }, [
       el("button", { class: "iconbtn iconbtn--ring", type: "button", "aria-label": "Back", html: icon("back", { size: 20 }), onclick: back }),
       el("h1", { class: "display", text: "All Messages" }),
+      el("button", {
+        class: `iconbtn iconbtn--ring bellbtn ${unread ? "is-new" : ""}`,
+        type: "button",
+        "aria-label": unread
+          ? `What you missed, ${unread} new`
+          : "What you missed, nothing new",
+        html: `${icon("bell", { size: 20 })}${unread ? `<span class="bellbtn__n" aria-hidden="true">${unread > 9 ? "9+" : unread}</span>` : ""}`,
+        onclick: () => go("notifications"),
+      }),
       avatar((byId[meId] || {}).avatar_url, "You"),
     ])
   );

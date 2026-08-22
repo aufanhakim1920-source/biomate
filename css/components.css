@@ -30,6 +30,27 @@
 .iconbtn--ring { border: 1.5px solid var(--brand-text); width: 34px; height: 34px; }
 .iconbtn:active { transform: scale(.94); }
 
+/* ---------------- the inbox button ----------------
+   Lives in the Messages topbar. The count sits on the corner of the
+   bell rather than beside it, because at 375px the topbar already
+   carries a back button, a title and an avatar. */
+.bellbtn { position: relative; }
+.bellbtn__n {
+  position: absolute;
+  top: -5px; right: -5px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: var(--r-pill);
+  background: var(--brand-ink);
+  color: var(--on-brand);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 17px;
+  text-align: center;
+  box-shadow: 0 0 0 2px var(--bg);
+}
+
 .avatar {
   width: 38px; height: 38px;
   border-radius: 50%;
@@ -365,6 +386,7 @@
   z-index: 60;
 }
 .nav__item {
+  position: relative;      /* the unread badge anchors to this */
   height: 100%;
   display: grid; place-items: center;
   color: var(--brand-text);
@@ -373,6 +395,49 @@
 .nav__item[aria-current="page"] { color: var(--brand-ink); }
 .nav__item[aria-current="page"] svg { fill: currentColor; }
 .nav__item:active { transform: scale(.9); }
+
+/* ---------------- unread count ----------------
+   The number, not a bare dot. "You have something" and "you have
+   eleven things" are different enough to act on differently, and the
+   digit costs the same 18 pixels the dot would have.
+
+   ⚠️ --brand-ink + --on-brand rather than brand + white. That pair
+   is the audited one: white on the lifted dark-mode terracotta is
+   3.40:1, and this is small text, so it needs the token that flips
+   to a dark ground in dark mode instead. */
+.nav__badge {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  margin-left: 4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--r-pill);
+  background: var(--brand-ink);
+  color: var(--on-brand);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 18px;
+  text-align: center;
+  /* against the peach nav so it reads as ON the icon, not behind it */
+  box-shadow: 0 0 0 2px var(--peach-1);
+  pointer-events: none;
+}
+
+/* In the rail there is a label to sit beside, so it stops floating
+   over the icon and becomes an ordinary trailing count. */
+@media (min-width: 900px) {
+  .nav__badge {
+    position: static;
+    margin-left: auto;
+    box-shadow: none;
+  }
+  .nav__item[aria-current="page"] .nav__badge {
+    background: var(--on-brand);
+    color: var(--brand-ink);
+  }
+}
 
 /* ---------------- toast ---------------- */
 .toast {

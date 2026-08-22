@@ -37,6 +37,7 @@ import { say } from "../a11y.js";
 import { createRecorder, countPoints } from "../track.js";
 import { createRouteCanvas } from "../routemap.js";
 import { back, go } from "../router.js";
+import { walkFinished } from "../fx.js";
 
 const DRAFT = "biomate/trail-draft";
 
@@ -357,10 +358,23 @@ export async function trail({ id }) {
     });
     localStorage.removeItem(DRAFT);
 
-    const line = `Saved. ${fmtDistance(row.distance_m)} in ${fmtDuration(row.duration_s)}.`;
-    toast(line);
-    say(line, true);
-    setTimeout(() => go(saved && saved.id ? `walk/${saved.id}` : "profile"), 700);
+    /* ⚠️ This is the one celebration that speaks aloud whether or not
+       audio description is on, and it is deliberate: finishing a walk
+       is the moment the phone is in a pocket and nobody is looking at
+       the screen. It is the same exception the kilometre milestones
+       already take — a deliberate, requested announcement rather than
+       an unprompted noise. Every other panel stays quiet.
+
+       It also replaces the old toast + say pair. Two say() calls in
+       one tick fight over the live region and the second cancels the
+       first mid-sentence; one call, said once, is the fix. */
+    walkFinished({
+      distance: fmtDistance(row.distance_m),
+      duration: fmtDuration(row.duration_s),
+      place: h ? String(h.title || "").split("—")[0].trim() : "",
+      force: true,
+    });
+    setTimeout(() => go(saved && saved.id ? `walk/${saved.id}` : "profile"), 900);
   }
 
   /* leaving the screen must not leave a GPS watch and a wake lock

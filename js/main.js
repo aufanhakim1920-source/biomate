@@ -16,6 +16,8 @@ import { loadPrefs } from "./store.js";
 import { mount as mountA11y, say } from "./a11y.js";
 import { mountAppbar, setAppbarState } from "./appbar.js";
 import { consumeAuthRedirect } from "./auth.js";
+import { refreshBadge } from "./notify.js";
+import { celebrateStreak } from "./fx.js";
 
 import { home } from "./screens/home.js";
 import { matchmaker } from "./screens/matchmaker.js";
@@ -33,12 +35,14 @@ import { host, region } from "./screens/host.js";
 import { onboarding } from "./screens/onboarding.js";
 import { account } from "./screens/account.js";
 import { person } from "./screens/person.js";
+import { notifications } from "./screens/notifications.js";
 
 /* ---------------- routes ---------------- */
 route("home",       home,       { title: () => "Home",              nav: "home" });
 route("matchmaker", matchmaker, { title: () => "Discover",          nav: "cards" });
 route("hike",       hike,       { title: () => "Hike",              nav: "home" });
 route("messages",   messages,   { title: () => "Messages",          nav: "chat" });
+route("notifications", notifications, { title: () => "What you missed", nav: "chat" });
 route("chat",       chat,       { title: () => "Group chat",        nav: "chat" });
 route("plan",       plan,       { title: () => "Plan your activity",nav: "chat" });
 route("gear",       gear,       { title: () => "Gear",              nav: "chat" });
@@ -169,6 +173,12 @@ async function boot() {
   const stats = await DB.statsFor(DB.uid());
   setAppbarState({ streak, xp: stats.xp || 0 });
 
+  /* A streak is the one reward you earn by doing nothing but turning
+     up, so it is the one that has to congratulate you on arrival
+     rather than waiting for you to go looking. Guarded to fire once
+     per milestone — see celebrateStreak. */
+  celebrateStreak(streak);
+
   /* first run lands in onboarding, not on a home screen full of other
      people's walks with no idea who you are */
   const seen = localStorage.getItem("biomate/onboarded");
@@ -176,6 +186,20 @@ async function boot() {
 
   start();
   say("Biomate ready.");
+
+  /* The inbox count, recomputed on arrival and after every
+     navigation. `silent` on the first pass: the count is unknown
+     until now, so every item in it is "new" by definition, and a
+     page that chimes the moment it finishes loading is precisely
+     the ambush the off-by-default rule exists to prevent.
+
+     Hooked to hashchange rather than a timer on purpose — nothing in
+     this app polls, so a tab left open overnight does not sit there
+     making requests. The trade is that the badge updates when you
+     move, not while you sit still, which is the right trade for
+     something with no realtime subscription behind it. */
+  refreshBadge({ silent: true });
+  window.addEventListener("hashchange", () => refreshBadge());
 }
 
 boot().catch((err) => {
