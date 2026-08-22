@@ -16,7 +16,6 @@ import { el, avatar, toast } from "../ui.js";
 import { icon } from "../icons.js";
 import { say } from "../a11y.js";
 import { go, back } from "../router.js";
-import { leaveControl } from "../leave.js";
 
 export async function chat({ id }) {
   const meId = DB.uid();
@@ -57,19 +56,6 @@ export async function chat({ id }) {
       el("button", { class: "btn btn--ghost", type: "button", html: `${icon("clock", { size: 18 })}<span>Availability</span>`, onclick: () => go(`when/${h.id}`) }),
     ])
   );
-
-  /* ---- the way out, in the header rather than buried in a menu ----
-     Sitting beside Plan and Availability it reads as one of the things
-     you can do with a group, which is what it is. It is deliberately
-     quieter than those two and asks before it acts. */
-  const leave = leaveControl({
-    hike: h,
-    members,
-    meId,
-    myName: (byId[meId] || {}).display_name,
-    context: "chat",
-  });
-  if (leave) wrap.append(leave);
 
   /* ---- the thread ---- */
   const list = el("div", { class: "thread", role: "log", "aria-label": "Messages", "aria-live": "polite" });

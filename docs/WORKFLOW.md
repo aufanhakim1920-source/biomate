@@ -43,7 +43,15 @@ Two agents that both need `main.js` need worktrees.
 
 Before anything reaches `main`:
 
-1. `node --check` every changed `.js`, and `node test/track.test.mjs`.
+1. **`node --input-type=module --check < file.js`** on every changed `.js`, and
+   `node test/track.test.mjs`.
+
+   ⚠️ NOT plain `node --check file.js`. It passed a file containing two `let`
+   declarations of the same name in the same scope; the browser refused the
+   whole module graph with *"Identifier 'picked' has already been declared"*
+   and the app booted to a blank screen. Piping through `--input-type=module`
+   forces the parser into module mode and catches it. Measured, not assumed —
+   the same file passes one and fails the other.
 2. **Open it in a browser and look at it.** "It compiles" is not verification
    in this project — see `docs/DEFINITION-OF-DONE.md`.
 3. Check the claims. An agent report is a starting point, not evidence. On the

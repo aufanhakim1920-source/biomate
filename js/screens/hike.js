@@ -10,13 +10,14 @@
    ============================================================ */
 
 import { DB } from "../db.js";
-import { el, photo, avatar, fmtDate, difficultyLabel } from "../ui.js";
+import { el, photo, avatar, toast, fmtDate, difficultyLabel } from "../ui.js";
 import { icon } from "../icons.js";
 import { say } from "../a11y.js";
 import { go, back } from "../router.js";
 import { personBadge } from "../appbar.js";
 import { leaveControl } from "../leave.js";
 import { joinedHike } from "../fx.js";
+import { prepare } from "../photo.js";
 
 export async function hike({ id }) {
   const meId = DB.uid();
@@ -150,6 +151,43 @@ export async function hike({ id }) {
             setTimeout(() => go(`chat/${h.id}`), 700);
           },
         });
+
+  /* ---- the host can change the group photo ----
+     The Start a group screen tells people they can do this here, so it
+     has to be here. Host only: the photo is what everyone else swipes
+     on, and it is not a thing any member should be able to replace. */
+  if (iAmHost) {
+    const input = el("input", { class: "sr-only", type: "file", id: "hike-photo", accept: "image/*" });
+    const status = el("p", { class: "tiny", style: "padding-top:8px" });
+    const label = el("label", { class: "btn btn--ghost btn--block", for: "hike-photo" }, [
+      el("span", { text: h.photo_url && !/^data:/.test(h.photo_url) ? "Change the group photo" : "Add a group photo" }),
+    ]);
+
+    input.addEventListener("change", async () => {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      status.textContent = "Reading the photo…";
+      try {
+        const out = await prepare(file);
+        status.textContent = "Uploading…";
+        const url = await DB.upload(out.blob, `group-${h.id}.jpg`);
+        await DB.update("hikes", { id: h.id }, { photo_url: url });
+        /* show it immediately rather than making them reload to find
+           out whether it worked */
+        const img = wrap.querySelector(".hero__img");
+        if (img) { img.src = url; img.alt = `Photo for ${h.title}`; }
+        status.textContent = `Updated — ${Math.round(out.bytes / 1024)} KB.`;
+        toast("Group photo updated");
+        say("Group photo updated.");
+      } catch (err) {
+        console.warn("[hike] photo update failed", err);
+        status.textContent = err.message || "That didn't upload. Try again.";
+        input.value = "";
+      }
+    });
+
+    wrap.append(el("div", { class: "block", style: "padding-top:0" }, [label, input, status]));
+  }
 
   wrap.append(el("div", { class: "block" }, [action]));
 

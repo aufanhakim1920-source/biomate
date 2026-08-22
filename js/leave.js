@@ -1,7 +1,11 @@
 /* ============================================================
    Biomate — leaving a group
 
-   One control with two homes: the chat header and the hike page.
+   ⚠️ ONE home now, not two. It used to sit in the chat header as
+   well, and Aufan's note was that it read as too conspicuous there —
+   fair: a way OUT of a conversation should not be one of the first
+   things you see while reading it. The route in is the group's name at
+   the top of the chat, which already opens the hike page.
    It lives in its own module because the ORDER OF THE TWO WRITES
    matters, and an order that has to be right in two screens is an
    order that ends up wrong in one of them.
@@ -68,7 +72,7 @@ export function leaveControl({ hike, members, meId, myName, context = "chat" }) 
      able to read a thread you have left is confusing otherwise. */
   if (!iAmHost && !iAmIn && context === "hike") return null;
 
-  const bar = el("div", { class: `leavebar ${context === "hike" ? "leavebar--block" : ""}` });
+  const bar = el("div", { class: "leavebar leavebar--block" });
 
   if (iAmHost) {
     bar.append(note(`You're hosting ${short}, so you can't leave it — everyone who joined would be left without a host.`));
@@ -104,7 +108,10 @@ export function leaveControl({ hike, members, meId, myName, context = "chat" }) 
   const QUESTION = "Leave this group? You'll stop getting its messages.";
 
   const leaveBtn = el("button", {
-    class: "btn btn--ghost",
+    /* red, because it is the one destructive thing on the page and
+       colour is the fastest way to say so — but outlined rather than
+       filled, so it never competes with the primary action above it */
+    class: "btn btn--leave",
     type: "button",
     "aria-label": `Leave ${short}`,
     html: `${icon("close", { size: 16 })}<span>Leave group</span>`,

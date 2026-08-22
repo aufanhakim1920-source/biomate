@@ -519,6 +519,40 @@
 .mapwell__where { font-weight: 700; font-size: var(--t-md); }
 .mapwell__note { font-size: var(--t-xs); color: var(--ink-soft); max-width: 34ch; line-height: 1.5; }
 
+/* ---------------- choosing a group photo ----------------
+   The preview is the size the card will use, so what you see when you
+   pick is what people swipe on. */
+.photopick { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.photopick__img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--r-lg);
+  background: var(--peach-0);
+  box-shadow: var(--lift-1);
+}
+/* a <label for> triggering the input keeps the keyboard path a plain
+   file input already has; styling it as a button is the only trick */
+.photopick__btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: var(--tap);
+  padding: 12px 18px;
+  border-radius: var(--r-pill);
+  background: var(--brand-ink); color: var(--on-brand);
+  font-weight: 700; font-size: var(--t-sm);
+  cursor: pointer;
+}
+.photopick__btn:hover { filter: brightness(1.06); }
+/* the input is .sr-only, so its focus ring has to be borrowed by the
+   label or a keyboard user cannot see where they are */
+.photopick input:focus-visible + .photopick__note,
+.photopick__btn:focus-within { outline: 2px solid var(--brand); outline-offset: 2px; }
+.photopick input:focus-visible ~ .photopick__btn,
+.photopick input:focus-visible + * { outline: none; }
+#group-photo:focus-visible ~ .photopick__btn,
+.photopick:focus-within .photopick__btn { outline: 2px solid var(--brand); outline-offset: 2px; }
+.photopick__note { color: var(--ink-soft); line-height: 1.5; }
+
 /* ---------------- account ---------------- */
 
 /* the guest prompt on the profile — a row, not a banner. It is an

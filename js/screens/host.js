@@ -11,6 +11,7 @@ import { el, toast, avatar, fmtShortDate, difficultyLabel } from "../ui.js";
 import { icon } from "../icons.js";
 import { say } from "../a11y.js";
 import { landscape } from "../art.js";
+import { photoPicker } from "../photo.js";
 import { regionName } from "../ausmap.js";
 import { go, back } from "../router.js";
 
@@ -80,6 +81,21 @@ export async function host() {
     },
   })));
 
+  /* The photo comes FIRST. It is the largest thing on the card and the
+     thing people actually swipe on, so asking for it after six text
+     fields would frame it as an afterthought. */
+  /* NOT `picked` — that name is already the tag Set above, and
+     shadowing it here is a duplicate declaration that takes the whole
+     module graph down with it */
+  let groupPhoto = null;
+  const draftId = crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
+  wrap.append(
+    el("div", { class: "block" }, [
+      el("p", { class: "tiny", text: "GROUP PHOTO" }),
+      photoPicker({ el, fallback: landscape(draftId), onPick: (out) => { groupPhoto = out; } }),
+    ])
+  );
+
   wrap.append(
     field("title", "Title", title),
     field("where", "Where", where),
@@ -96,9 +112,10 @@ export async function host() {
       onclick: async () => {
         const t = title.value.trim();
         if (!t) { toast("It needs a title"); title.focus(); say("It needs a title."); return; }
-        const id = crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
+        const id = draftId;
         const row = {
           id, host_id: meId, title: t,
+          /* the generated artwork is the fallback, not the plan */
           photo_url: landscape(id),
           description: desc.value.trim(),
           region: pickedRegion,
@@ -108,6 +125,19 @@ export async function host() {
           proposed_date: date.value || null,
           status: "open",
         };
+        /* ⚠️ Upload first, but never let it cost the hike. If storage
+           refuses, the group is still created with generated artwork
+           and the person is told — losing everything they typed
+           because a photo failed would be the worse outcome by far. */
+        if (groupPhoto) {
+          try {
+            row.photo_url = await DB.upload(groupPhoto.blob, `group-${id}.jpg`);
+          } catch (err) {
+            console.warn("[host] photo upload failed", err);
+            toast("Couldn't upload the photo — posting with artwork for now");
+          }
+        }
+
         const saved = await DB.insert("hikes", row);
         await DB.upsert("hike_members", { hike_id: saved.id || id, user_id: meId, status: "joined" }, ["hike_id", "user_id"]);
         await DB.insert("messages", { hike_id: saved.id || id, user_id: meId, kind: "system", body: "You created this hike" });
@@ -116,7 +146,7 @@ export async function host() {
         go(`hike/${saved.id || id}`);
       },
     }),
-    el("p", { class: "tiny", style: "margin-top:10px", text: "Artwork is generated for you until someone adds a group photo." }),
+    el("p", { class: "tiny", style: "margin-top:10px", text: "You can change the photo later from the hike page." }),
   ]));
 
   return wrap;

@@ -621,10 +621,14 @@
    contains a deep red that passes on light and lifts on dark
    (--brand-text), and using the brand's own serious tone reads as
    part of the app rather than as a warning bolted on from a kit. */
+/* Left aligned, per Aufan. It used to sit right, which put it directly
+   under the primary action and read as a second, competing button. On
+   the left it lines up with the page's own text column and reads as a
+   footnote to the page rather than a choice being offered. */
 .leavebar {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   flex-wrap: wrap;
   gap: 10px;
   padding: 0 var(--pad) 12px;
